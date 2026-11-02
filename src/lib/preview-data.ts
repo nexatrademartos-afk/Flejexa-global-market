@@ -1,11 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
+import {
+  readOfflineCatalogue,
+  saveCatalogueOffline,
+} from "@/lib/offline-storage";
 
 /**
  * Shared live catalogue types and data access.
- *
- * The homepage now reads from Supabase directly.
- * The shop and product-detail routes still use the legacy exports below
- * until those routes are migrated in the next steps.
+ * Only public, active storefront records are persisted for offline browsing.
  */
 
 export interface StoreCategory {
@@ -29,6 +30,7 @@ export interface StoreProduct {
   category_id: string | null;
   is_featured: boolean;
   stock: number;
+  merchandising_tags?: string[] | null;
 }
 
 export interface StoreBanner {
@@ -43,13 +45,13 @@ export interface StoreCatalogue {
   products: StoreProduct[];
   categories: StoreCategory[];
   banners: StoreBanner[];
+  savedAt?: string;
+  isOfflineSnapshot?: boolean;
 }
 
 /**
- * Legacy shape retained temporarily so existing shop and product-detail
- * imports continue to compile during the staged migration.
- *
- * Do not use this sample data for new storefront features.
+ * Legacy shape retained for older preview components.
+ * Do not use sample data for new storefront features.
  */
 export const IS_PREVIEW_DATA = true;
 
@@ -126,9 +128,7 @@ export function getStoreImageUrl(
 
   const value = path.trim();
 
-  if (/^https?:\/\//i.test(value)) {
-    return value;
-  }
+  if (/^https?:\/\//i.test(value)) return value;
 
   const cleanPath = value
     .replace(/^\/+/, "")
@@ -142,7 +142,9 @@ export function getStoreImageUrl(
 }
 
 /**
- * Format catalogue prices in South African rand.
+ * Format catalogue prices using the existing storefront convention.
+ * Currency configuration is a separate global-commerce task; this preserves
+ * the current display behaviour without changing the checkout or database.
  */
 export function formatStorePrice(price: number): string {
   return new Intl.NumberFormat("en-ZA", {
@@ -152,16 +154,12 @@ export function formatStorePrice(price: number): string {
   }).format(price);
 }
 
-/**
- * Load active catalogue records from the existing Supabase database.
- * This function only reads data; it does not insert, update or delete rows.
- */
-export async function fetchStoreCatalogue(): Promise<StoreCatalogue> {
+async function fetchLiveStoreCatalogue(): Promise<StoreCatalogue> {
   const [productResult, categoryResult, bannerResult] = await Promise.all([
     supabase
       .from("products")
       .select(
-        "id,name,slug,price,compare_at_price,discount_pct,image_url,gallery,description,category_id,is_featured,stock",
+        "id,name,slug,price,compare_at_price,discount_pct,image_url,gallery,description,category_id,is_featured,stock,merchandising_tags",
       )
       .eq("is_active", true)
       .gt("price", 0)
@@ -183,36 +181,92 @@ export async function fetchStoreCatalogue(): Promise<StoreCatalogue> {
   ]);
 
   if (productResult.error) {
-    throw new Error(
-      `Unable to load products: ${productResult.error.message}`,
-    );
+    throw new Error(`Unable to load products: ${productResult.error.message}`);
   }
 
   if (categoryResult.error) {
-    throw new Error(
-      `Unable to load categories: ${categoryResult.error.message}`,
-    );
+    throw new Error(`Unable to load categories: ${categoryResult.error.message}`);
   }
 
   if (bannerResult.error) {
-    // Banner failures should not prevent customers from browsing products.
     console.error(
       "Unable to load promotional banners:",
       bannerResult.error.message,
     );
   }
 
-  const mappedProducts: StoreProduct[] = ((productResult.data ?? []) as Array<Record<string, unknown>>).map((item) => ({
+  const mappedProducts: StoreProduct[] = (
+    (productResult.data ?? []) as Array<Record<string, unknown>>
+  ).map((item) => ({
     ...(item as unknown as StoreProduct),
     gallery: Array.isArray(item["gallery"])
-      ? (item["gallery"] as unknown[]).filter((url): url is string => typeof url === "string")
+      ? (item["gallery"] as unknown[]).filter(
+          (url): url is string => typeof url === "string",
+        )
       : null,
+    merchandising_tags: Array.isArray(item["merchandising_tags"])
+      ? (item["merchandising_tags"] as unknown[]).filter(
+          (tag): tag is string => typeof tag === "string",
+        )
+      : [],
   }));
 
   return {
     products: mappedProducts,
     categories: (categoryResult.data ?? []) as StoreCategory[],
     banners: (bannerResult.data ?? []) as StoreBanner[],
+  };
+}
+
+/**
+ * Loads the live public catalogue when possible and falls back to the most
+ * recently saved public snapshot when the device is offline or the request
+ * fails. This never persists account, authentication or admin information.
+ */
+export async function fetchStoreCatalogue(): Promise<StoreCatalogue> {
+  const canAttemptNetwork =
+    typeof navigator === "undefined" || navigator.onLine;
+
+  if (canAttemptNetwork) {
+    try {
+      const catalogue = await fetchLiveStoreCatalogue();
+
+      if (typeof indexedDB !== "undefined") {
+        try {
+          await saveCatalogueOffline(catalogue);
+        } catch (error) {
+          // Browsing online should continue even if local storage is unavailable.
+          console.warn("Unable to save the offline catalogue snapshot:", error);
+        }
+      }
+
+      return catalogue;
+    } catch (error) {
+      const saved = await readOfflineCatalogue().catch(() => null);
+      if (saved) {
+        return {
+          products: saved.products,
+          categories: saved.categories,
+          banners: saved.banners,
+          savedAt: saved.savedAt,
+          isOfflineSnapshot: true,
+        };
+      }
+      throw error;
+    }
+  }
+
+  const saved = await readOfflineCatalogue();
+  if (!saved) {
+    throw new Error("No saved catalogue is available on this device yet.");
+  }
+
+  return {
+    products: saved.products,
+    categories: saved.categories,
+    banners: saved.banners,
+    savedAt: saved.savedAt,
+    isOfflineSnapshot: true,
   };
 }
 
