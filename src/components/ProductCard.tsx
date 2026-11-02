@@ -1,4 +1,5 @@
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { OfflineImage } from "@/components/OfflineImage";
 import { buildProductWhatsAppMessage, openWhatsApp } from "@/lib/whatsapp";
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -38,7 +39,7 @@ export function ProductTile({ p, className = "" }: { p: ProductCardItem; classNa
       className={`relative grid aspect-square place-items-center overflow-hidden bg-ink text-ink-foreground ${className}`}
     >
       {image ? (
-        <img
+        <OfflineImage
           src={image}
           alt={p.name}
           loading="lazy"
