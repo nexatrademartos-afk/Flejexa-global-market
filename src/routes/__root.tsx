@@ -1,5 +1,6 @@
 import { FloatingSupportButtons } from "@/components/FloatingSupportButtons";
 import { BRAND } from "@/lib/brand";
+import { OfflineStatusBanner } from "@/components/OfflineStatusBanner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -233,6 +234,17 @@ function RootComponent() {
     select: (location) => location.pathname,
   });
 
+  useEffect(() => {
+    if (import.meta.env.DEV || !("serviceWorker" in navigator)) return;
+
+    void navigator.serviceWorker.register("/service-worker.js", {
+      scope: "/",
+      updateViaCache: "none",
+    }).catch((error) => {
+      console.error("Service worker registration failed:", error);
+    });
+  }, []);
+
   const [signedIn, setSignedIn] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
 
@@ -336,6 +348,7 @@ function RootComponent() {
   <MobileParallaxBackground />
   <SiteHeader />
       <WelcomeBanner />
+      <OfflineStatusBanner />
 
       <main
         className={`min-h-[70vh] ${

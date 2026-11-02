@@ -1,5 +1,7 @@
 import { ProductCard } from "@/components/ProductCard";
+import { OfflineImage } from "@/components/OfflineImage";
 import { BRAND } from "@/lib/brand";
+import { fetchStoreCatalogue } from "@/lib/preview-data";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Search, ChevronRight, ShoppingBag } from "lucide-react";
@@ -183,54 +185,20 @@ function Home() {
       setLoading(true);
       setLoadError(false);
 
-      const [productResult, categoryResult, bannerResult] = await Promise.all([
-        supabase
-          .from("products")
-          .select(
-            "id,name,slug,price,compare_at_price,discount_pct,image_url,category_id,is_featured,stock,merchandising_tags",
-          )
-          .eq("is_active", true)
-          .gt("price", 0)
-          .gt("stock", 0)
-          .order("created_at", { ascending: false })
-          .limit(500),
+      try {
+        const catalogue = await fetchStoreCatalogue();
+        if (!active) return;
 
-        supabase
-          .from("categories")
-          .select("id,name,slug,sort_order,image_url")
-          .eq("is_active", true)
-          .order("sort_order", { ascending: true }),
-
-        supabase
-          .from("banners")
-          .select("id,title,subtitle,image_url,sort_order")
-          .eq("is_active", true)
-          .order("sort_order", { ascending: true }),
-      ]);
-
-      if (!active) return;
-
-      if (productResult.error || categoryResult.error) {
-        console.error(
-          "NEXA storefront catalogue could not be loaded.",
-          productResult.error ?? categoryResult.error,
-        );
-        setLoadError(true);
-      } else {
-        setProducts((productResult.data ?? []) as Product[]);
-        setCategories((categoryResult.data ?? []) as Category[]);
+        setProducts(catalogue.products as Product[]);
+        setCategories(catalogue.categories as Category[]);
+        setBanners(catalogue.banners as Banner[]);
+        setLoadError(false);
+      } catch (error) {
+        console.error("Storefront catalogue could not be loaded:", error);
+        if (active) setLoadError(true);
+      } finally {
+        if (active) setLoading(false);
       }
-
-      if (bannerResult.error) {
-        console.error(
-          "NEXA promotional banners could not be loaded.",
-          bannerResult.error,
-        );
-      } else {
-        setBanners((bannerResult.data ?? []) as Banner[]);
-      }
-
-      setLoading(false);
     }
 
     void loadStorefront();
@@ -410,7 +378,7 @@ function Home() {
                 >
                   <div className="relative aspect-[16/7]">
                     {imageUrl && !imageFailed ? (
-                      <img
+                      <OfflineImage
                         src={imageUrl}
                         alt={banner.title}
                         loading="lazy"

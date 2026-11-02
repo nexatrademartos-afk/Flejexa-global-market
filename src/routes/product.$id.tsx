@@ -1,4 +1,5 @@
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { OfflineImage } from "@/components/OfflineImage";
 import { BRAND, brandPageTitle } from "@/lib/brand";
 import {
   buildProductWhatsAppMessage,
@@ -139,7 +140,7 @@ function ProductGallery({
       {/* Main Image Display */}
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-gold/30 bg-ink text-ink-foreground shadow-lg">
         {currentImage ? (
-          <img
+          <OfflineImage
             src={currentImage}
             alt={`${name} - View ${activeIndex + 1}`}
             className="h-full w-full object-contain p-3 transition-all duration-300"
@@ -211,7 +212,7 @@ function ProductGallery({
                       : "border-border/70 hover:border-gold/50 bg-card"
                   }`}
                 >
-                  <img
+                  <OfflineImage
                     src={img}
                     alt=""
                     className="h-full w-full rounded-lg object-contain"
