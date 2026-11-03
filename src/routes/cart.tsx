@@ -6,6 +6,8 @@ import { ProductTile } from "@/components/ProductCard";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { buildCartWhatsAppMessage, openWhatsApp } from "@/lib/Whatsapp";
 import { BRAND, brandPageTitle } from "@/lib/brand";
+import { WifiOff } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/cart")({
   loader: () => fetchStoreCatalogue(),
@@ -163,6 +165,15 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
             <p className="text-xs text-muted-foreground">
               Delivery charges and final availability must be confirmed with {BRAND.name}.
             </p>
+
+            {isOffline && (
+              <div className="flex items-start gap-2 rounded-lg border border-gold/40 bg-ink p-3 text-xs text-slate-200">
+                <WifiOff className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+                <p>
+                  <strong>You are currently offline.</strong> Your cart items are saved locally on this device. WhatsApp will prepare your draft order message now, but sending it requires mobile data or an internet connection. No payment has been processed.
+                </p>
+              </div>
+            )}
 
             <button
               type="button"

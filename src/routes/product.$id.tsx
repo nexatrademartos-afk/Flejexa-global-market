@@ -65,21 +65,34 @@ export const Route = createFileRoute("/product/$id")({
     };
   },
 
-  notFoundComponent: () => (
-    <div className="mx-auto max-w-md px-4 py-16 text-center">
-      <h1 className="text-2xl font-bold">Product not found</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        This product may no longer be available.
-      </p>
-      <Link
-        to="/shop"
-        search={{ page: 1 }}
-        className="btn btn-primary mt-4"
-      >
-        Back to shop
-      </Link>
-    </div>
-  ),
+  notFoundComponent: () => {
+    const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold">
+          {isOffline ? "Product unavailable offline" : "Product not found"}
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {isOffline
+            ? "This product has not been saved on your device yet. Reconnect to the internet to load and cache its full details."
+            : "This product may no longer be available in the marketplace."}
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link
+            to="/shop"
+            search={{ page: 1 }}
+            className="btn btn-primary"
+          >
+            Browse saved shop
+          </Link>
+          <Link to="/" className="btn btn-outline">
+            Go home
+          </Link>
+        </div>
+      </div>
+    );
+  },
 
   component: Product,
 });

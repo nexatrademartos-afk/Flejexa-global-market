@@ -185,6 +185,10 @@ export const Route =
       ],
       links: [
         {
+          rel: "manifest",
+          href: "/manifest.json",
+        },
+        {
           rel: "preconnect",
           href: "https://fonts.googleapis.com",
         },
