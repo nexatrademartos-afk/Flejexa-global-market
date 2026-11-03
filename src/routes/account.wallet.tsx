@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { AccountPage, accountHead } from "@/components/AccountPage";
 import { PlannedBadge } from "@/components/states";
+import { BRAND } from "@/lib/brand";
 import { supabase } from "@/integrations/supabase/client";
 
 type CustomerWallet = {
@@ -61,7 +62,7 @@ type WalletTransactionItem = {
 
 export const Route = createFileRoute("/account/wallet")({
   head: accountHead(
-    "Identity Brand Wallet",
+    `${BRAND.shortName} Wallet`,
     "Wallet overview, rewards, payments and transaction history.",
   ),
   component: WalletPage,
@@ -669,7 +670,7 @@ function WalletPage() {
 
   if (loading) {
     return (
-      <AccountPage title="Identity Brand Wallet" intro="Checking your wallet security.">
+      <AccountPage title={`${BRAND.shortName} Wallet`} intro="Checking your wallet security.">
         <div className="rounded-2xl border p-6 text-sm text-muted-foreground">
           Checking your wallet and security status…
         </div>
@@ -857,7 +858,7 @@ function WalletPage() {
 
   return (
     <AccountPage
-      title="Identity Brand Wallet"
+      title={`${BRAND.shortName} Wallet`}
       intro="Your wallet overview, rewards and financial activity."
     >
       <div className="space-y-5">
