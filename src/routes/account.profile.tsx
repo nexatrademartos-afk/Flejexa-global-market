@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { AccountPage, accountHead } from "@/components/AccountPage";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchCanonicalCustomerCode } from "@/lib/customer-identity";
+import { resolveCustomerCode } from "@/lib/customer-code";
+import { countryName, isValidCountryIso2 } from "@/lib/countries";
 import { Check, Loader2, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/account/profile")({
@@ -15,6 +18,7 @@ function CustomerProfilePage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState("");
   const [customerCode, setCustomerCode] = useState("");
+  const [country, setCountry] = useState<string | null>(null);
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -58,17 +62,33 @@ function CustomerProfilePage() {
 
         if (profileError) throw profileError;
 
+        // Canonical identity code comes from nexa_person_identities; profiles.customer_code is only a fallback.
+        const canonicalCode = await fetchCanonicalCustomerCode();
+
+        // Country is read from the default delivery address (the existing trigger keeps it in sync with identity).
+        const { data: defaultAddress, error: addressError } = await supabase
+          .from("customer_addresses")
+          .select("country_iso2")
+          .eq("user_id", user.id)
+          .eq("is_default", true)
+          .limit(1)
+          .maybeSingle();
+
+        if (addressError) throw addressError;
+
         if (active) {
           if (profile) {
             setFullName(profile.full_name || "");
             setPhone(profile.phone || "");
             setAddress(profile.address || "");
-            setCustomerCode(profile.customer_code || "");
           } else {
             const metaName =
               typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name : "";
             setFullName(metaName);
           }
+
+          setCustomerCode(resolveCustomerCode(canonicalCode, profile?.customer_code));
+          setCountry(defaultAddress?.country_iso2 || null);
         }
       } catch (err) {
         if (active) {
@@ -262,11 +282,14 @@ function CustomerProfilePage() {
               id="country_notice"
               type="text"
               disabled
-              value="South Africa (Default)"
-              className="field cursor-not-allowed opacity-60"
+              value={isValidCountryIso2(country) ? countryName(country) : "Not set"}
+              className="field cursor-not-allowed opacity-70"
             />
             <p className="text-[11px] text-muted-foreground">
-              Country field is not stored in customer profile schema.
+              Taken from your default delivery address.{" "}
+              <Link to="/account/addresses" className="font-semibold text-gold hover:underline">
+                Manage addresses
+              </Link>
             </p>
           </div>
 

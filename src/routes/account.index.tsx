@@ -19,6 +19,8 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchCanonicalCustomerCode } from "@/lib/customer-identity";
+import { resolveCustomerCode } from "@/lib/customer-code";
 import { PlannedBadge } from "@/components/states";
 
 type CustomerProfile = {
@@ -203,7 +205,9 @@ function CustomerDashboard() {
         const profile = data as CustomerProfile | null;
 
         setFullName(profile?.full_name?.trim() || metadataName);
-        setCustomerCode(profile?.customer_code?.trim() || "");
+        const canonicalCode = await fetchCanonicalCustomerCode();
+        if (!active) return;
+        setCustomerCode(resolveCustomerCode(canonicalCode, profile?.customer_code));
       } catch {
         if (active) {
           setError("We couldn't load all your account details. Please refresh and try again.");

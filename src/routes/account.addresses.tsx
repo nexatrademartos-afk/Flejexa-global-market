@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AccountPage, accountHead } from "@/components/AccountPage";
 import { supabase } from "@/integrations/supabase/client";
+import { COUNTRY_OPTIONS, countryName, isValidCountryIso2 } from "@/lib/countries";
 import { Check, Edit2, Loader2, MapPin, Plus, Star, Trash2, X } from "lucide-react";
 
 type Address = {
@@ -13,6 +14,7 @@ type Address = {
   city: string;
   province: string | null;
   postal_code: string | null;
+  country_iso2: string | null;
   label: string | null;
   is_default: boolean;
   created_at: string;
@@ -44,6 +46,7 @@ function DeliveryAddressesPage() {
   const [city, setCity] = useState("");
   const [province, setProvince] = useState("");
   const [postalCode, setPostalCode] = useState("");
+  const [countryIso2, setCountryIso2] = useState("");
   const [label, setLabel] = useState("");
   const [isDefault, setIsDefault] = useState(false);
 
@@ -116,6 +119,8 @@ function DeliveryAddressesPage() {
     setProvince("");
     setPostalCode("");
     setLabel("");
+    // Suggest the default address country, but never force it.
+    setCountryIso2(addresses.find((a) => a.is_default)?.country_iso2 || "");
     setIsDefault(addresses.length === 0);
     setFormOpen(true);
     setFeedback(null);
@@ -129,6 +134,7 @@ function DeliveryAddressesPage() {
     setCity(addr.city);
     setProvince(addr.province || "");
     setPostalCode(addr.postal_code || "");
+    setCountryIso2(addr.country_iso2 || "");
     setLabel(addr.label || "");
     setIsDefault(addr.is_default);
     setFormOpen(true);
@@ -143,6 +149,14 @@ function DeliveryAddressesPage() {
       setFeedback({
         type: "error",
         message: "Recipient, phone, street, and city are required fields.",
+      });
+      return;
+    }
+
+    if (!isValidCountryIso2(countryIso2)) {
+      setFeedback({
+        type: "error",
+        message: "Please select a valid country for this address.",
       });
       return;
     }
@@ -167,6 +181,7 @@ function DeliveryAddressesPage() {
         city: city.trim(),
         province: province.trim() || null,
         postal_code: postalCode.trim() || null,
+        country_iso2: countryIso2,
         label: label.trim() || null,
         is_default: isDefault,
         updated_at: new Date().toISOString(),
@@ -399,6 +414,26 @@ function DeliveryAddressesPage() {
                   />
                 </div>
 
+                <div className="sm:col-span-2">
+                  <label htmlFor="addr_country" className="text-xs font-semibold">
+                    Country <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="addr_country"
+                    required
+                    value={countryIso2}
+                    onChange={(e) => setCountryIso2(e.target.value)}
+                    className="field mt-1"
+                  >
+                    <option value="">Select a country</option>
+                    {COUNTRY_OPTIONS.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div>
                   <label htmlFor="addr_city" className="text-xs font-semibold">
                     City <span className="text-red-500">*</span>
@@ -551,6 +586,11 @@ function DeliveryAddressesPage() {
                   {addr.city}
                   {addr.province ? `, ${addr.province}` : ""}
                   {addr.postal_code ? ` ${addr.postal_code}` : ""}
+                </p>
+                <p className="mt-1 text-xs font-medium text-muted-foreground">
+                  {isValidCountryIso2(addr.country_iso2)
+                    ? countryName(addr.country_iso2)
+                    : "Country not set"}
                 </p>
               </div>
 

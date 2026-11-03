@@ -155,6 +155,7 @@ export type Database = {
       customer_addresses: {
         Row: {
           city: string
+          country_iso2: string | null
           created_at: string
           id: string
           is_default: boolean
@@ -169,6 +170,7 @@ export type Database = {
         }
         Insert: {
           city: string
+          country_iso2?: string | null
           created_at?: string
           id?: string
           is_default?: boolean
@@ -183,6 +185,7 @@ export type Database = {
         }
         Update: {
           city?: string
+          country_iso2?: string | null
           created_at?: string
           id?: string
           is_default?: boolean
@@ -536,6 +539,19 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      nexa_person_identities: {
+        // Partial: only person_code is read by the frontend. Confirm against the live schema.
+        Row: {
+          person_code: string
+        }
+        Insert: {
+          person_code?: string
+        }
+        Update: {
+          person_code?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
