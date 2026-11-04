@@ -23,6 +23,7 @@ import { AccountPage, accountHead } from "@/components/AccountPage";
 import { PlannedBadge } from "@/components/states";
 import { BRAND } from "@/lib/brand";
 import { supabase } from "@/integrations/supabase/client";
+import { WalletRewardsPanel } from "@/components/wallet/WalletRewardsPanel";
 
 type CustomerWallet = {
   id: string;
