@@ -38,6 +38,7 @@ import { Route as AccountWalletRouteImport } from './routes/account.wallet'
 import { Route as AccountWishlistRouteImport } from './routes/account.wishlist'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as WorkspaceRoleRouteImport } from './routes/workspace.$role'
+import { Route as AccountWalletSettingsRouteImport } from './routes/account.wallet.settings'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -184,6 +185,11 @@ const WorkspaceRoleRoute = WorkspaceRoleRouteImport.update({
   path: '/workspace/$role',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountWalletSettingsRoute = AccountWalletSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AccountWalletRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -210,11 +216,12 @@ export interface FileRoutesByFullPath {
   '/account/rewards': typeof AccountRewardsRoute
   '/account/secure-access': typeof AccountSecureAccessRoute
   '/account/settings': typeof AccountSettingsRoute
-  '/account/wallet': typeof AccountWalletRoute
+  '/account/wallet': typeof AccountWalletRouteWithChildren
   '/account/wishlist': typeof AccountWishlistRoute
   '/product/$id': typeof ProductIdRoute
   '/workspace/$role': typeof WorkspaceRoleRoute
   '/account/': typeof AccountIndexRoute
+  '/account/wallet/settings': typeof AccountWalletSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -240,11 +247,12 @@ export interface FileRoutesByTo {
   '/account/rewards': typeof AccountRewardsRoute
   '/account/secure-access': typeof AccountSecureAccessRoute
   '/account/settings': typeof AccountSettingsRoute
-  '/account/wallet': typeof AccountWalletRoute
+  '/account/wallet': typeof AccountWalletRouteWithChildren
   '/account/wishlist': typeof AccountWishlistRoute
   '/product/$id': typeof ProductIdRoute
   '/workspace/$role': typeof WorkspaceRoleRoute
   '/account': typeof AccountIndexRoute
+  '/account/wallet/settings': typeof AccountWalletSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -272,11 +280,12 @@ export interface FileRoutesById {
   '/account/rewards': typeof AccountRewardsRoute
   '/account/secure-access': typeof AccountSecureAccessRoute
   '/account/settings': typeof AccountSettingsRoute
-  '/account/wallet': typeof AccountWalletRoute
+  '/account/wallet': typeof AccountWalletRouteWithChildren
   '/account/wishlist': typeof AccountWishlistRoute
   '/product/$id': typeof ProductIdRoute
   '/workspace/$role': typeof WorkspaceRoleRoute
   '/account/': typeof AccountIndexRoute
+  '/account/wallet/settings': typeof AccountWalletSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -310,6 +319,7 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/workspace/$role'
     | '/account/'
+    | '/account/wallet/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/workspace/$role'
     | '/account'
+    | '/account/wallet/settings'
   id:
     | '__root__'
     | '/'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/workspace/$role'
     | '/account/'
+    | '/account/wallet/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -597,8 +609,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceRoleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/wallet/settings': {
+      id: '/account/wallet/settings'
+      path: '/settings'
+      fullPath: '/account/wallet/settings'
+      preLoaderRoute: typeof AccountWalletSettingsRouteImport
+      parentRoute: typeof AccountWalletRoute
+    }
   }
 }
+
+interface AccountWalletRouteChildren {
+  AccountWalletSettingsRoute: typeof AccountWalletSettingsRoute
+}
+
+const AccountWalletRouteChildren: AccountWalletRouteChildren = {
+  AccountWalletSettingsRoute: AccountWalletSettingsRoute,
+}
+
+const AccountWalletRouteWithChildren = AccountWalletRoute._addFileChildren(
+  AccountWalletRouteChildren,
+)
 
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
@@ -611,7 +642,7 @@ interface AccountRouteChildren {
   AccountRewardsRoute: typeof AccountRewardsRoute
   AccountSecureAccessRoute: typeof AccountSecureAccessRoute
   AccountSettingsRoute: typeof AccountSettingsRoute
-  AccountWalletRoute: typeof AccountWalletRoute
+  AccountWalletRoute: typeof AccountWalletRouteWithChildren
   AccountWishlistRoute: typeof AccountWishlistRoute
   AccountIndexRoute: typeof AccountIndexRoute
 }
@@ -627,7 +658,7 @@ const AccountRouteChildren: AccountRouteChildren = {
   AccountRewardsRoute: AccountRewardsRoute,
   AccountSecureAccessRoute: AccountSecureAccessRoute,
   AccountSettingsRoute: AccountSettingsRoute,
-  AccountWalletRoute: AccountWalletRoute,
+  AccountWalletRoute: AccountWalletRouteWithChildren,
   AccountWishlistRoute: AccountWishlistRoute,
   AccountIndexRoute: AccountIndexRoute,
 }
