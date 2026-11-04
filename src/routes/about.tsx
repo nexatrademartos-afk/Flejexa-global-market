@@ -1,4 +1,5 @@
 
+import { BRAND } from "@/lib/brand";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -266,7 +267,7 @@ function AboutPage() {
               A broader service ecosystem
             </h3>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">
-              Our future vision includes a proposed NEXA Wallet concept
+              Our future vision includes a proposed {BRAND.shortName} Wallet concept
               for setting money aside for a later purchase, alongside
               additional services we may introduce as the platform grows.
               These ideas are not presented as currently available services.
