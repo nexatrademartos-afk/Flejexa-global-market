@@ -162,8 +162,8 @@ export function WalletRewardsPanel() {
               </div>
               <p className="mt-2 text-sm font-semibold">Not connected</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                The current database has referral and reward-point records, but no dedicated
-                commission ledger or approved cash-commission calculation.
+                Referral and reward-point records exist, but there is no dedicated commission
+                ledger or approved cash-commission calculation.
               </p>
             </div>
           </div>
@@ -184,6 +184,7 @@ export function WalletRewardsPanel() {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{reward.reason}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
+                        {reward.order_id ? `Order: ${reward.order_id} · ` : ""}
                         {new Date(reward.created_at).toLocaleDateString()}
                       </p>
                     </div>
