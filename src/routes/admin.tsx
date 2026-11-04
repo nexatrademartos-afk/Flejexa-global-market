@@ -95,6 +95,11 @@ const MERCHANDISING_OPTIONS = [
     label: "Affordable",
     description: "Show in the Affordable section.",
   },
+  {
+    value: "cheapest",
+    label: "Cheapest",
+    description: "Show in the Cheapest today highlight on the shop, lowest price first.",
+  },
 ] as const;
 
 type MerchandisingTag = (typeof MERCHANDISING_OPTIONS)[number]["value"];
