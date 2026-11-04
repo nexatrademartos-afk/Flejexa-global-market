@@ -356,13 +356,21 @@ function CustomerDashboard() {
             <p className="mt-1 text-sm text-muted-foreground">
               Try another search term to find a service.
             </p>
-            <button
-              type="button"
-              className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-gold hover:underline"
-              onClick={() => setSearch("")}
-            >
-              Clear search
-            </button>
+            <div className="mt-3 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                to="/account/secure-access"
+                className="btn btn-primary inline-flex items-center justify-center gap-2"
+              >
+                Nominate Service
+              </Link>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-gold hover:underline"
+                onClick={() => setSearch("")}
+              >
+                Clear search
+              </button>
+            </div>
           </div>
         )}
       </section>
