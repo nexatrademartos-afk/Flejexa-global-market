@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -120,7 +121,7 @@ export const SERVICES: Service[] = [
     available: false,
   },
     {
-    title: "NEXA Wallet",
+    title: `${BRAND.shortName} Wallet`,
     description: "Wallet overview, deposits and financial activity",
     to: "/account/wallet",
     icon: Wallet,
