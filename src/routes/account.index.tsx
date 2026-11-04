@@ -352,17 +352,15 @@ function CustomerDashboard() {
 
         {filteredServices.length === 0 && (
           <div className="surface rounded-xl p-5 text-center">
-            <h3 className="font-semibold text-foreground">No matching services</h3>
+            <h3 className="font-semibold text-foreground">
+              <Link to="/account/secure-access" className="text-foreground no-underline hover:no-underline">
+                No matching services
+              </Link>
+            </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Try another search term to find a service.
             </p>
-            <div className="mt-3 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                to="/account/secure-access"
-                className="btn btn-primary inline-flex items-center justify-center gap-2"
-              >
-                Nominate Service
-              </Link>
+            <div className="mt-3 flex items-center justify-center">
               <button
                 type="button"
                 className="inline-flex items-center gap-1 text-sm font-semibold text-gold hover:underline"
