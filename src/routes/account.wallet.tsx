@@ -1419,6 +1419,7 @@ function WalletPage() {
             detail="Funds held for authorized operations."
           />
         </section>
+        <WalletRewardsPanel />
 
         {wallet && (
           <section className="surface rounded-2xl border p-5 sm:p-6">
