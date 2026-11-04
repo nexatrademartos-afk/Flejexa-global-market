@@ -116,8 +116,12 @@ describe("Administration application entry point and review wiring", () => {
     expect(workspace).toContain("Your account is not authorised to access this workspace");
   });
 
-  it("renders the CEO review panel only in the CEO workspace", () => {
-    expect(workspace).toMatch(/workspace\.key === "ceo" && \(\s*<div[^>]*>\s*<CeoAdminApplications \/>/);
+  it("renders the Administration review panel only inside the CEO dashboard's Applications section", () => {
+    expect(workspace).toMatch(/workspace\.key === "ceo" \?\s*\(\s*<CeoDashboard/);
+    expect(workspace).not.toContain("<CeoAdminApplications />");
+    const applications = read("src/components/ceo/CeoApplications.tsx");
+    expect(applications).toContain('import { CeoAdminApplications } from "@/components/CeoAdminApplications";');
+    expect(applications).toContain("<CeoAdminApplications />");
   });
 
   it("applicant form submits as the authenticated user, pending, with no review fields", () => {

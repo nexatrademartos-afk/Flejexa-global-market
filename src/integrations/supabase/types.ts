@@ -857,7 +857,8 @@ export type Database = {
         }
         Returns: string
       }
-      // PROPOSED contract, not yet installed. See docs/admin-application-contract.md and docs/sql/admin-application-proposed.sql.
+      // Present on the live project (anonymous calls return permission denied, not not-found). Field shape
+      // checked against docs/admin-application-contract.md; not yet verified with an authenticated CEO session.
       get_admin_application_dossiers: {
         Args: { p_application_ids: string[] }
         Returns: {
@@ -871,6 +872,44 @@ export type Database = {
           profile_phone: string | null
           assigned_roles: string[] | null
         }[]
+      }
+      // CEO executive dashboard RPCs (installed on the live project). Each one is CEO-only on the server.
+      // Return shapes are read defensively in src/lib/ceo-dashboard.ts until verified with a live CEO session.
+      get_ceo_dashboard_overview: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_ceo_dashboard_analytics: {
+        Args: { p_start_date: string; p_end_date: string }
+        Returns: Json
+      }
+      get_ceo_role_applications: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_ceo_people_directory: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
+      get_ceo_business_operations: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
+      get_ceo_customer_experience: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
+      get_ceo_finance_snapshot: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_ceo_executive_audit: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
+      ceo_assign_operational_role: {
+        Args: { p_user_id: string; p_role: string; p_reason: string }
+        Returns: Json
       }
     }
     Enums: {

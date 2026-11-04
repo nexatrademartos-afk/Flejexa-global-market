@@ -23,7 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { getWorkspace, type WorkspaceKey } from "@/lib/workspaces";
 import { PlannedBadge } from "@/components/states";
-import { CeoAdminApplications } from "@/components/CeoAdminApplications";
+import { CeoDashboard } from "@/components/ceo/CeoDashboard";
 import { AdminPage, type AdminTab } from "@/routes/admin";
 
 type AccessState =
@@ -36,6 +36,7 @@ type AccessState =
       roles: WorkspaceKey[];
       name: string;
       accountCode: string | null;
+      userId: string;
     };
 
 const ROLE_LABELS: Record<WorkspaceKey, string> = {
@@ -301,6 +302,7 @@ function WorkspacePage() {
           user.email?.split("@")[0] ||
           "NEXA member",
         accountCode: profile?.customer_code ?? null,
+        userId: user.id,
       });
     }
 
@@ -313,7 +315,9 @@ function WorkspacePage() {
 
   return (
     <main
-      className={`mx-auto max-w-6xl space-y-6 px-4 py-6 md:py-9 ${
+      className={`mx-auto space-y-6 px-4 py-6 md:py-9 ${
+        workspace.key === "ceo" ? "max-w-7xl" : "max-w-6xl"
+      } ${
         workspace.key === "admin" ? "pb-24 md:pb-9" : ""
       }`}
     >
@@ -425,18 +429,17 @@ function WorkspacePage() {
               accountCode={roleDisplayCode(access.accountCode, "admin")}
               requestedTab={requestedTab}
             />
+          ) : workspace.key === "ceo" ? (
+            <CeoDashboard
+              name={access.name}
+              accountCode={roleDisplayCode(access.accountCode, "ceo")}
+              userId={access.userId}
+            />
           ) : (
-            <>
-              <StandardWorkspace
-                workspace={workspace}
-                access={access}
-              />
-              {workspace.key === "ceo" && (
-                <div className="mt-6">
-                  <CeoAdminApplications />
-                </div>
-              )}
-            </>
+            <StandardWorkspace
+              workspace={workspace}
+              access={access}
+            />
           )}
         </>
       )}
