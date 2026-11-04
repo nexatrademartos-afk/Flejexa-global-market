@@ -66,7 +66,7 @@ const mocks = vi.hoisted(() => {
     },
   };
 
-  return { supabase, wallet };
+  return { supabase, wallet, onWalletHome: true };
 });
 
 vi.mock("@/integrations/supabase/client", () => ({ supabase: mocks.supabase }));
@@ -78,6 +78,8 @@ vi.mock("@tanstack/react-router", () => ({
       {children}
     </a>
   ),
+  Outlet: () => <div data-testid="wallet-child-route" />,
+  useMatchRoute: () => () => (mocks.onWalletHome ? {} : false),
 }));
 
 import { Route } from "@/routes/account.wallet";
@@ -129,6 +131,7 @@ describe("Wallet home screen layout", () => {
     expect(screen.queryByText(/Illustrative/i)).toBeNull();
     expect(screen.queryByText(/Identity Brand Wallet/i)).toBeNull();
     expect(screen.queryByText("Change wallet PIN")).toBeNull();
+    expect(screen.queryByText("PIN and recovery")).toBeNull();
   });
 
   it("moves PIN and recovery management to wallet settings and lists services in a collapsible menu", async () => {
@@ -140,7 +143,7 @@ describe("Wallet home screen layout", () => {
     fireEvent.click(screen.getByRole("button", { name: /unlock/i }));
     await screen.findByText("Welcome back, Thulani");
 
-    const settingsLink = screen.getByRole("link", { name: "Open wallet settings" });
+    const settingsLink = screen.getByRole("link", { name: "Wallet settings" });
     expect(settingsLink.getAttribute("href")).toBe("/account/wallet/settings");
 
     const services = screen.getByText("Wallet services").closest("details");
@@ -152,5 +155,16 @@ describe("Wallet home screen layout", () => {
       servicesList.getByText("Wallet settings & security").closest("a")?.getAttribute("href"),
     ).toBe("/account/wallet/settings");
     await waitFor(() => expect(mocks.supabase.functions.invoke).toHaveBeenCalled());
+  });
+
+  it("renders the wallet settings child route instead of the wallet home when the URL is a child path", async () => {
+    mocks.onWalletHome = false;
+    try {
+      render(<WalletPage />);
+      expect(screen.getByTestId("wallet-child-route")).toBeTruthy();
+      expect(screen.queryByText(/Welcome back/)).toBeNull();
+    } finally {
+      mocks.onWalletHome = true;
+    }
   });
 });

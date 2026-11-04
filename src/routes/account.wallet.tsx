@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
 import {
   ArrowLeftRight,
   ArrowDownToLine,
@@ -66,7 +66,7 @@ export const Route = createFileRoute("/account/wallet")({
     `${BRAND.shortName} Wallet`,
     "Wallet overview, rewards, payments and transaction history.",
   ),
-  component: WalletPage,
+  component: WalletRoute,
 });
 
 type WalletNavItem = {
@@ -137,6 +137,12 @@ function statusClass(status: string): string {
     return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400";
   }
   return "border-border bg-muted text-muted-foreground";
+}
+
+function WalletRoute() {
+  const matchRoute = useMatchRoute();
+  const isWalletHome = Boolean(matchRoute({ to: "/account/wallet", fuzzy: false }));
+  return isWalletHome ? <WalletPage /> : <Outlet />;
 }
 
 function WalletPage() {
@@ -843,6 +849,14 @@ function WalletPage() {
           </Link>
 
           <div className="flex items-center gap-2">
+            <Link
+              to="/account/wallet/settings"
+              aria-label="Wallet settings"
+              title="Wallet settings"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-gold/40 text-gold transition-opacity hover:opacity-80"
+            >
+              <Settings className="h-4 w-4" />
+            </Link>
             <span className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium capitalize text-muted-foreground">
               <ShieldCheck className="h-4 w-4" />
               {loading ? "Checking wallet" : statusLabel}
@@ -1029,13 +1043,14 @@ function WalletPage() {
           </div>
 
           <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
-            <WalletAction icon={ArrowDownToLine} label="Add money" detail="Not activated" />
-            <WalletAction icon={ArrowLeftRight} label="Transfer" detail="Not activated" />
-            <WalletAction icon={ArrowUpFromLine} label="Withdraw" detail="Payouts disabled" />
+            <WalletAction icon={ArrowDownToLine} label="Add money" detail="Not active" />
+            <WalletAction icon={ArrowLeftRight} label="Transfer" detail="Not active" />
+            <WalletAction icon={ArrowUpFromLine} label="Withdraw" detail="Not active" />
           </div>
 
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            Deposits, transfers and withdrawals stay disabled until their secure flows are approved.
+            Deposits, transfers and withdrawals stay inactive until their secure flows are approved
+            and connected to the wallet ledger.
           </p>
         </section>
 
@@ -1060,32 +1075,6 @@ function WalletPage() {
             detail="Funds held for authorized operations."
           />
         </section>
-
-        {wallet && (
-          <section className="surface rounded-2xl border p-5 sm:p-6">
-            <div className="flex items-start gap-3">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-gold/40 bg-gold/10 text-gold">
-                <LockKeyhole className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h2 className="font-bold">PIN and recovery</h2>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {pinStatusLoading
-                    ? "Checking PIN status…"
-                    : pinIsSet === true
-                      ? "Your six-digit wallet PIN is set. Change your PIN or recovery questions in wallet settings."
-                      : "Wallet PIN status is unavailable right now."}
-                </p>
-                <Link
-                  to="/account/wallet/settings"
-                  className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl border border-gold/40 px-4 text-sm font-semibold text-gold transition-colors hover:bg-gold/10"
-                >
-                  Open wallet settings
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
 
         {wallet && (
           <section className="surface rounded-2xl border p-5 sm:p-6">
