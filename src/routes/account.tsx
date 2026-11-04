@@ -156,7 +156,7 @@ function AccountLayout() {
         <QuickNavItem to="/shop" label="Shop" icon={ShoppingCart} />
         <QuickNavItem to="/account/orders" label="My Orders" icon={Package} />
         <QuickNavItem to="/account" label="Dashboard" icon={LayoutGrid} />
-        <QuickNavItem to="/account/settings" label="Security" icon={Wallet} />
+        <QuickNavItem to="/account/wallet" label="Wallet" icon={Wallet} />
         <QuickNavItem to="/account/orders" label="Delivery" icon={Truck} />
         <QuickNavItem to="/account/profile" label="Profile" icon={UserRound} />
       </nav>
@@ -169,7 +169,7 @@ function QuickNavItem({
   label,
   icon: Icon,
 }: {
-  to: "/shop" | "/account" | "/account/orders" | "/account/settings" | "/account/profile";
+  to: "/shop" | "/account" | "/account/orders" | "/account/wallet" | "/account/profile";
   label: string;
   icon: typeof ShoppingCart;
 }) {
