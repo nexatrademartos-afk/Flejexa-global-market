@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AccountPage, accountHead } from "@/components/AccountPage";
@@ -150,7 +151,7 @@ function RewardsPage() {
               <Wallet className="h-5 w-5" />
             </span>
             <div>
-              <h3 className="font-semibold">NEXA Wallet</h3>
+              <h3 className="font-semibold">{BRAND.shortName} Wallet</h3>
               <p className="text-xs text-muted-foreground">
                 In-app store balance and deposit account
               </p>
