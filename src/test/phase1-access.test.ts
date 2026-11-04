@@ -7,11 +7,13 @@ const read = (path: string) => readFileSync(resolve(__dirname, "../..", path), "
 describe("customer service search gateway", () => {
   const index = read("src/routes/account.index.tsx");
 
-  it("offers Nominate Service when no service matches, keeping Clear search", () => {
+  it("makes the No matching services heading a quiet link to secure-access, with no visible nominate button", () => {
     const emptyState = index.slice(index.indexOf("filteredServices.length === 0"));
-    expect(emptyState).toContain('to="/account/secure-access"');
-    expect(emptyState).toContain("Nominate Service");
+    expect(emptyState).toContain("No matching services");
+    expect(emptyState).toMatch(/<Link\s+to="\/account\/secure-access"[\s\S]*?No matching services/);
+    expect(emptyState).not.toContain("Nominate Service");
     expect(emptyState).toContain("Clear search");
+    expect(emptyState).toContain("setSearch(\"\")");
   });
 
   it("secure-access stays noindex and links to the Admin and CEO workspaces", () => {
