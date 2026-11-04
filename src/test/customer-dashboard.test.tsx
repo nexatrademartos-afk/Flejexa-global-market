@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 import { describe, expect, it } from "vitest";
 import { SERVICES } from "@/routes/account.index";
 
@@ -31,7 +32,7 @@ describe("Customer dashboard services configuration", () => {
     const orders = SERVICES.find((s) => s.title === "My Orders");
     expect(orders?.available).toBe(false);
 
-    const wallet = SERVICES.find((s) => s.title === "NEXA Wallet");
+    const wallet = SERVICES.find((s) => s.title === `${BRAND.shortName} Wallet`);
     expect(wallet?.available).toBe(true);
 
     const coupons = SERVICES.find((s) => s.title === "Coupons");
