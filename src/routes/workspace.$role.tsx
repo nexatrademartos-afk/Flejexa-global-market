@@ -23,6 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { getWorkspace, type WorkspaceKey } from "@/lib/workspaces";
 import { PlannedBadge } from "@/components/states";
+import { CeoAdminApplications } from "@/components/CeoAdminApplications";
 import { AdminPage, type AdminTab } from "@/routes/admin";
 
 type AccessState =
@@ -225,8 +226,6 @@ function WorkspacePage() {
     status: "checking",
   });
 
-  const [showAdminApplicationNotice, setShowAdminApplicationNotice] =
-    useState(false);
 
   useEffect(() => {
     let active = true;
@@ -362,32 +361,7 @@ function WorkspacePage() {
             NEXA · Protected workspace
           </p>
 
-          {showAdminApplicationNotice && workspace.key === "admin" ? (
-            <>
-              <h1 className="mt-2 text-2xl font-bold">
-                Admin Applications — Coming Soon
-              </h1>
-              <p className="mt-3 text-sm text-muted-foreground">
-                The Admin application process is not available yet. When it
-                launches, applications will be handled separately from the
-                customer dashboard's existing role applications. This notice
-                does not grant workspace access.
-              </p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={() => setShowAdminApplicationNotice(false)}
-                >
-                  Back
-                </button>
-                <Link to="/account" className="btn btn-primary">
-                  Return to Customer Dashboard
-                </Link>
-              </div>
-            </>
-          ) : (
-            <>
+          <>
               <h1 className="mt-2 text-2xl font-bold">
                 Your account is not authorised to access this workspace
               </h1>
@@ -430,21 +404,16 @@ function WorkspacePage() {
                 )}
 
                 {workspace.key === "admin" && (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => setShowAdminApplicationNotice(true)}
-                  >
+                  <Link to="/account/admin-application" className="btn btn-primary">
                     Apply for Admin Access
-                  </button>
+                  </Link>
                 )}
 
                 <Link to="/account" className="btn btn-outline">
                   Return to Customer Dashboard
                 </Link>
               </div>
-            </>
-          )}
+          </>
         </section>
       )}
 
@@ -457,10 +426,17 @@ function WorkspacePage() {
               requestedTab={requestedTab}
             />
           ) : (
-            <StandardWorkspace
-              workspace={workspace}
-              access={access}
-            />
+            <>
+              <StandardWorkspace
+                workspace={workspace}
+                access={access}
+              />
+              {workspace.key === "ceo" && (
+                <div className="mt-6">
+                  <CeoAdminApplications />
+                </div>
+              )}
+            </>
           )}
         </>
       )}

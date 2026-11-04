@@ -25,6 +25,7 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
+import { Route as AccountAdminApplicationRouteImport } from './routes/account.admin-application'
 import { Route as AccountApplicationsRouteImport } from './routes/account.applications'
 import { Route as AccountCartRouteImport } from './routes/account.cart'
 import { Route as AccountNotificationsRouteImport } from './routes/account.notifications'
@@ -120,6 +121,11 @@ const AccountAddressesRoute = AccountAddressesRouteImport.update({
   path: '/addresses',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountAdminApplicationRoute = AccountAdminApplicationRouteImport.update({
+  id: '/admin-application',
+  path: '/admin-application',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountApplicationsRoute = AccountApplicationsRouteImport.update({
   id: '/applications',
   path: '/applications',
@@ -207,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/admin-application': typeof AccountAdminApplicationRoute
   '/account/applications': typeof AccountApplicationsRoute
   '/account/cart': typeof AccountCartRoute
   '/account/notifications': typeof AccountNotificationsRoute
@@ -238,6 +245,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/admin-application': typeof AccountAdminApplicationRoute
   '/account/applications': typeof AccountApplicationsRoute
   '/account/cart': typeof AccountCartRoute
   '/account/notifications': typeof AccountNotificationsRoute
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/admin-application': typeof AccountAdminApplicationRoute
   '/account/applications': typeof AccountApplicationsRoute
   '/account/cart': typeof AccountCartRoute
   '/account/notifications': typeof AccountNotificationsRoute
@@ -305,6 +314,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/wishlist'
     | '/account/addresses'
+    | '/account/admin-application'
     | '/account/applications'
     | '/account/cart'
     | '/account/notifications'
@@ -336,6 +346,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/wishlist'
     | '/account/addresses'
+    | '/account/admin-application'
     | '/account/applications'
     | '/account/cart'
     | '/account/notifications'
@@ -368,6 +379,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/wishlist'
     | '/account/addresses'
+    | '/account/admin-application'
     | '/account/applications'
     | '/account/cart'
     | '/account/notifications'
@@ -518,6 +530,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountAddressesRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/admin-application': {
+      id: '/account/admin-application'
+      path: '/admin-application'
+      fullPath: '/account/admin-application'
+      preLoaderRoute: typeof AccountAdminApplicationRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/applications': {
       id: '/account/applications'
       path: '/applications'
@@ -633,6 +652,7 @@ const AccountWalletRouteWithChildren = AccountWalletRoute._addFileChildren(
 
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
+  AccountAdminApplicationRoute: typeof AccountAdminApplicationRoute
   AccountApplicationsRoute: typeof AccountApplicationsRoute
   AccountCartRoute: typeof AccountCartRoute
   AccountNotificationsRoute: typeof AccountNotificationsRoute
@@ -649,6 +669,7 @@ interface AccountRouteChildren {
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
+  AccountAdminApplicationRoute: AccountAdminApplicationRoute,
   AccountApplicationsRoute: AccountApplicationsRoute,
   AccountCartRoute: AccountCartRoute,
   AccountNotificationsRoute: AccountNotificationsRoute,

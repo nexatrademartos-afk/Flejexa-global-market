@@ -355,7 +355,7 @@ const [searchText, setSearchText] = useState("");
         setOrders(data ?? []);
       }
       if (tab === "staff" || tab === "suppliers" || tab === "intelligence") {
-        const { data, error } = await supabase.from("role_applications").select("*").order("created_at", { ascending: false }).limit(500);
+        const { data, error } = await supabase.from("role_applications").select("*").neq("requested_role", "admin").order("created_at", { ascending: false }).limit(500);
         if (error) throw error;
         setApplications(data ?? []);
       }
@@ -612,10 +612,14 @@ const [searchText, setSearchText] = useState("");
   }
 
   async function reviewApplication(application: RoleApplication, status: "approved" | "rejected") {
-    const notes = reviewNotes[application.id]?.trim() || null;
-    const { error } = await supabase.from("role_applications").update({ status, review_notes: notes, reviewed_by: user?.id ?? null, reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", application.id);
+    // Administration applications are CEO-only. The database enforces this too; this check only gives a clear message.
+    if (application.requested_role === "admin") { setModuleError("Administration applications can only be decided by the CEO."); return; }
+    const notes = reviewNotes[application.id]?.trim() || undefined;
+    const args: { p_application_id: string; p_decision: string; p_review_notes?: string } = { p_application_id: application.id, p_decision: status };
+    if (notes) args.p_review_notes = notes;
+    const { error } = await supabase.rpc("review_role_application", args);
     if (error) { setModuleError(`Could not update application: ${error.message}`); return; }
-    setApplications((current) => current.map((item) => item.id === application.id ? { ...item, status, review_notes: notes, reviewed_by: user?.id ?? null, reviewed_at: new Date().toISOString() } : item));
+    setApplications((current) => current.map((item) => item.id === application.id ? { ...item, status, review_notes: notes ?? null, reviewed_by: user?.id ?? null, reviewed_at: new Date().toISOString() } : item));
     setMessage(`Application ${status}. Note: role approval also needs a matching user_roles assignment before access is granted.`);
   }
 
