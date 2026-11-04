@@ -154,6 +154,25 @@ export function formatStorePrice(price: number): string {
   }).format(price);
 }
 
+/**
+ * Maximum time to wait for the live catalogue before using the saved snapshot.
+ * Prevents a stalled connection from blocking product and cart pages.
+ */
+export const LIVE_CATALOGUE_TIMEOUT_MS = 8000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error("The live catalogue request timed out.")),
+      ms,
+    );
+  });
+
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 async function fetchLiveStoreCatalogue(): Promise<StoreCatalogue> {
   const [productResult, categoryResult, bannerResult] = await Promise.all([
     supabase
@@ -224,12 +243,17 @@ async function fetchLiveStoreCatalogue(): Promise<StoreCatalogue> {
  * fails. This never persists account, authentication or admin information.
  */
 export async function fetchStoreCatalogue(): Promise<StoreCatalogue> {
+  // Only an explicit `false` means offline. Server runtimes can expose a
+  // `navigator` without `onLine`, and those must still load the live catalogue.
   const canAttemptNetwork =
-    typeof navigator === "undefined" || navigator.onLine;
+    typeof navigator === "undefined" || navigator.onLine !== false;
 
   if (canAttemptNetwork) {
     try {
-      const catalogue = await fetchLiveStoreCatalogue();
+      const catalogue = await withTimeout(
+        fetchLiveStoreCatalogue(),
+        LIVE_CATALOGUE_TIMEOUT_MS,
+      );
 
       if (typeof indexedDB !== "undefined") {
         try {

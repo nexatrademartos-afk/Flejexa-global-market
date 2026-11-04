@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useLocalList } from "@/lib/local-list";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 import { fetchStoreCatalogue, formatStorePrice, type StoreCatalogue } from "@/lib/preview-data";
 import { EmptyState, PreviewNotice, SkeletonGrid } from "@/components/states";
 import { ProductTile } from "@/components/ProductCard";
@@ -44,6 +45,7 @@ function CartPageComponent() {
 
 export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
   const cart = useLocalList("nexa-cart");
+  const isOffline = !useOnlineStatus();
 
   if (!cart.ready || !catalogue) {
     return <SkeletonGrid count={2} />;
@@ -170,7 +172,9 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
               <div className="flex items-start gap-2 rounded-lg border border-gold/40 bg-ink p-3 text-xs text-slate-200">
                 <WifiOff className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
                 <p>
-                  <strong>You are currently offline.</strong> Your cart items are saved locally on this device. WhatsApp will prepare your draft order message now, but sending it requires mobile data or an internet connection. No payment has been processed.
+                  <strong>You are currently offline.</strong> Your cart items are saved locally on
+                  this device. WhatsApp will prepare your draft order message now, but sending it
+                  requires mobile data or an internet connection. No payment has been processed.
                 </p>
               </div>
             )}
