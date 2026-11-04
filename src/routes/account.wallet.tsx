@@ -619,12 +619,12 @@ function WalletPage() {
   const balanceStatusValue = balanceLoading ? "Checking…" : balanceError ? "Unavailable" : null;
   const pendingFundsValue =
     balanceStatusValue ??
-    (ledgerBalance?.pending_zar !== undefined
+    (typeof ledgerBalance?.pending_zar === "number"
       ? `R ${ledgerBalance.pending_zar.toFixed(2)}`
       : "Not connected");
   const reservedFundsValue =
     balanceStatusValue ??
-    (ledgerBalance?.reserved_zar !== undefined
+    (typeof ledgerBalance?.reserved_zar === "number"
       ? `R ${ledgerBalance.reserved_zar.toFixed(2)}`
       : "Not connected");
   const qPointsValue = rewardsError
@@ -969,31 +969,24 @@ function WalletPage() {
                 </div>
               ) : ledgerBalance ? (
                 <div>
-                  {ledgerBalance.has_ledger_records ? (
-                    <div>
-                      <p className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl text-gold">
-                        R{" "}
-                        {(ledgerBalance.available_zar ?? 0).toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </p>
-                      <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                        Authoritative cash balance derived strictly from committed settled ledger
-                        entries.
-                      </p>
-                    </div>
+                  {typeof ledgerBalance.available_zar === "number" ? (
+                    <p className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl text-gold">
+                      R{" "}
+                      {ledgerBalance.available_zar.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
                   ) : (
-                    <div>
-                      <p className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
-                        No verified balance yet
-                      </p>
-                      <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                        No transactions have been recorded in your wallet ledger yet. Your verified
-                        balance will appear once initial transactions are committed and settled.
-                      </p>
-                    </div>
+                    <p className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+                      Not available yet
+                    </p>
                   )}
+                  <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                    {ledgerBalance.has_ledger_records
+                      ? "Available balance from your settled wallet ledger entries."
+                      : "No transactions have been recorded in your wallet ledger yet."}
+                  </p>
                   {ledgerBalance.refreshed_at && (
                     <p className="mt-1 text-xs text-muted-foreground">
                       Refreshed {new Date(ledgerBalance.refreshed_at).toLocaleTimeString()}

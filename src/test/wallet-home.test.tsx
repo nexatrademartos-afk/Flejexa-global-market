@@ -112,6 +112,11 @@ describe("Wallet home screen layout", () => {
 
     // Q Points total comes from reward_points (no rows = 0 points).
     expect(await screen.findByText("0 points")).toBeTruthy();
+    expect((await screen.findAllByText("R 0.00")).length).toBeGreaterThan(0);
+    expect(
+      screen.getByText("No transactions have been recorded in your wallet ledger yet."),
+    ).toBeTruthy();
+    expect(screen.queryByText("No verified balance yet")).toBeNull();
 
     // Money actions are visibly inactive, not clickable buttons.
     for (const label of ["Add money", "Transfer", "Withdraw"]) {
