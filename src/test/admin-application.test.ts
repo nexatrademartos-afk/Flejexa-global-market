@@ -32,6 +32,7 @@ function completeForm(overrides: Partial<AdminApplicationForm> = {}): AdminAppli
     reason: "I want to help NEXA run smoothly.",
     contribution: "Careful order checks and clear follow-up.",
     availability: "Weekdays, 08:00 to 16:00",
+    signatory: "Thandi Dlamini",
     declarations,
     ...overrides,
   };
@@ -120,7 +121,7 @@ describe("Administration application entry point and review wiring", () => {
   });
 
   it("applicant form submits as the authenticated user, pending, with no review fields", () => {
-    expect(form).toContain("applicant_id: authData.user.id");
+    expect(form).toContain("applicant_id: user.id");
     expect(form).toContain('requested_role: "admin"');
     expect(form).toContain('status: "pending"');
     expect(form).toContain("reviewed_by: null");

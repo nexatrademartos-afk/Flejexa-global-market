@@ -49,3 +49,19 @@ SELECT ur.role, ur.user_id
 FROM public.user_roles ur
 JOIN auth.users u ON u.id = ur.user_id
 WHERE u.email = 'thulanijosephtjc@gmail.com';
+
+-- 10. Policy record columns and CEO identity lookup (proposed in admin-application-proposed.sql)
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'role_applications'
+  AND column_name IN ('policy_version', 'policy_signatory_name', 'policy_acknowledgements', 'policy_accepted_at');
+
+SELECT proname, pg_get_function_identity_arguments(oid) AS args
+FROM pg_proc
+WHERE pronamespace = 'public'::regnamespace AND proname IN ('get_admin_application_dossiers', 'nexa_enforce_admin_application_policy');
+
+-- 11. Identity link used by the applicant form and the CEO lookup
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'nexa_person_identities'
+  AND column_name IN ('person_code', 'user_id');

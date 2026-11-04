@@ -18,3 +18,23 @@ export async function fetchCanonicalCustomerCode(): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * Returns the canonical NEXA ID linked to one specific authenticated account (nexa_person_identities.user_id).
+ * The account id must come from the authenticated session. Returns null when the identity cannot be verified.
+ */
+export async function fetchVerifiedNexaIdForUser(userId: string): Promise<string | null> {
+  if (!userId) return null;
+  try {
+    const { data, error } = await supabase
+      .from("nexa_person_identities")
+      .select("person_code")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error || !data?.person_code) return null;
+    return data.person_code.trim() || null;
+  } catch {
+    return null;
+  }
+}

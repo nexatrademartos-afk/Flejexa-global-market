@@ -2,14 +2,19 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AccountPage, accountHead } from "@/components/AccountPage";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchVerifiedNexaIdForUser } from "@/lib/customer-identity";
 import {
   APPLICATION_STATUS_COPY,
   DECLARATIONS,
   DEPARTMENTS,
   FIELD_LIMITS,
+  IDENTITY_UNVERIFIED_MESSAGE,
   applicationReference,
   buildApplicationMessage,
+  buildPolicyPayload,
+  describeSubmissionError,
   emptyAdminApplicationForm,
+  formatRecordDateTime,
   hasErrors,
   validateAdminApplication,
   type AdminApplicationErrors,
@@ -38,6 +43,8 @@ export const Route = createFileRoute("/account/admin-application")({
 function AdminApplicationPage() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [hasAdminRole, setHasAdminRole] = useState(false);
+  // Canonical NEXA ID for this signed-in account. Null means it could not be verified.
+  const [nexaId, setNexaId] = useState<string | null>(null);
   const [existing, setExisting] = useState<ApplicationRecord | null>(null);
   const [justSubmitted, setJustSubmitted] = useState(false);
   const [form, setForm] = useState<AdminApplicationForm>(emptyAdminApplicationForm);
@@ -46,17 +53,21 @@ function AdminApplicationPage() {
   const [submitError, setSubmitError] = useState("");
   const submittingRef = useRef(false);
 
-  const load = useCallback(async () => {
-    setPhase("loading");
+  // silent: refresh data without unmounting the form, so typed answers are kept.
+  const load = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) setPhase("loading");
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData.user) {
       setPhase("signed-out");
       return;
     }
 
-    const uid = authData.user.id;
-    const [profileResult, rolesResult, applicationResult] = await Promise.all([
-      supabase.from("profiles").select("full_name, email, phone").eq("id", uid).maybeSingle(),
+    const user = authData.user;
+    const uid = user.id;
+    const accountEmail = user.email?.trim() ?? "";
+
+    const [profileResult, rolesResult, applicationResult, verifiedNexaId] = await Promise.all([
+      supabase.from("profiles").select("full_name, phone").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
       supabase
         .from("role_applications")
@@ -65,13 +76,15 @@ function AdminApplicationPage() {
         .eq("requested_role", "admin")
         .order("created_at", { ascending: false })
         .limit(1),
+      fetchVerifiedNexaIdForUser(uid),
     ]);
 
-    if (profileResult.error || rolesResult.error || applicationResult.error) {
+    if (profileResult.error || rolesResult.error || applicationResult.error || !accountEmail) {
       console.error("Administration application load failed:", {
         profileError: profileResult.error,
         rolesError: rolesResult.error,
         applicationError: applicationResult.error,
+        accountEmailPresent: Boolean(accountEmail),
       });
       setPhase("error");
       return;
@@ -79,15 +92,16 @@ function AdminApplicationPage() {
 
     setHasAdminRole((rolesResult.data ?? []).some((row) => row.role === "admin"));
     setExisting((applicationResult.data?.[0] ?? null) as ApplicationRecord | null);
+    setNexaId(verifiedNexaId);
 
-    // Prefill only fields the applicant has not filled in. Existing profile data is never overwritten.
+    // Email always comes from the signed-in account. Profile name and phone only fill blank fields; nothing is overwritten.
     const profile = profileResult.data;
     const nameParts = (profile?.full_name ?? "").trim().split(/\s+/).filter(Boolean);
     setForm((current) => ({
       ...current,
+      email: accountEmail,
       firstName: current.firstName || nameParts[0] || "",
       surname: current.surname || nameParts.slice(1).join(" "),
-      email: current.email || profile?.email || authData.user.email || "",
       phone: current.phone || profile?.phone || "",
     }));
     setPhase("ready");
@@ -122,43 +136,70 @@ function AdminApplicationPage() {
       return;
     }
 
+    if (!nexaId) {
+      setSubmitError(IDENTITY_UNVERIFIED_MESSAGE);
+      return;
+    }
+
+    const policy = buildPolicyPayload(form);
+    if (!policy) {
+      setSubmitError("Confirm every declaration and type your full legal name to sign before submitting.");
+      return;
+    }
+
     submittingRef.current = true;
     setSubmitting(true);
 
     try {
+      // Re-read the signed-in account immediately before writing. The applicant id is never taken from the form.
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         setPhase("signed-out");
         return;
       }
 
+      const user = authData.user;
+      const accountEmail = user.email?.trim() ?? "";
+      if (!accountEmail || accountEmail !== form.email) {
+        setSubmitError("Your account details have changed. Refresh this page and try again.");
+        return;
+      }
+
+      const freshNexaId = await fetchVerifiedNexaIdForUser(user.id);
+      if (!freshNexaId) {
+        setNexaId(null);
+        setSubmitError(IDENTITY_UNVERIFIED_MESSAGE);
+        return;
+      }
+      if (freshNexaId !== nexaId) {
+        setNexaId(freshNexaId);
+        setSubmitError("Your NEXA ID has changed. Refresh this page and check your details before submitting.");
+        return;
+      }
+
       const submittedAt = new Date().toISOString();
+      // policy_accepted_at is deliberately not sent: the database records the acceptance time.
       const { data, error } = await supabase
         .from("role_applications")
         .insert({
-          applicant_id: authData.user.id,
+          applicant_id: user.id,
           requested_role: "admin",
-          application_message: buildApplicationMessage(form, submittedAt),
+          application_message: buildApplicationMessage({ ...form, email: accountEmail }, submittedAt),
           status: "pending",
           reviewed_by: null,
           reviewed_at: null,
           review_notes: null,
+          policy_version: policy.policy_version,
+          policy_signatory_name: policy.policy_signatory_name,
+          policy_acknowledgements: policy.policy_acknowledgements,
         })
         .select("id, status, created_at, review_notes, reviewed_at")
         .single();
 
       if (error) {
         console.error("Administration application submission failed:", error);
-        if (error.code === "23505") {
-          setSubmitError("You already have a pending Administration application. Refresh this page to see its status.");
-          await load();
-        } else if (error.code === "42501") {
-          setSubmitError("This account can't submit an Administration application. Sign in with the account you want to use for NEXA.");
-        } else if (error.code === "23514") {
-          setSubmitError("Administration applications aren't available for this account right now.");
-        } else {
-          setSubmitError("Your application could not be submitted. Please try again. If this continues, contact NEXA support.");
-        }
+        setSubmitError(describeSubmissionError(error));
+        if (error.code === "23505") await load({ silent: true });
         return;
       }
 
@@ -172,6 +213,7 @@ function AdminApplicationPage() {
     }
   }
 
+  // Only the Administration role itself stops a new application. Customer, CEO or other roles do not.
   const showForm =
     phase === "ready" &&
     !hasAdminRole &&
@@ -203,7 +245,7 @@ function AdminApplicationPage() {
 
       {phase === "error" && (
         <section role="alert" className="rounded-xl border border-red-500/40 p-5 text-sm">
-          <p>We couldn't load your application status. Please try again. If this continues, contact NEXA support.</p>
+          <p>We couldn't load your application status or confirm your account details. Please try again. If this continues, contact NEXA support.</p>
           <button type="button" className="btn btn-outline mt-3" onClick={() => void load()}>
             Try again
           </button>
@@ -211,12 +253,15 @@ function AdminApplicationPage() {
       )}
 
       {phase === "ready" && hasAdminRole && (
-        <section className="surface rounded-xl border border-gold/30 p-5">
+        <section className="surface space-y-3 rounded-xl border border-gold/30 p-5">
           <h2 className="font-semibold">Your account already has Administration access</h2>
-          <p className="mt-1 text-sm text-muted-foreground">No further application is needed.</p>
-          <Link to="/workspace/$role" params={{ role: "admin" }} className="btn btn-primary mt-4">
+          <p className="text-sm text-muted-foreground">
+            This account already holds the Administration role, so a new application isn't needed. Your application history is kept below.
+          </p>
+          <Link to="/workspace/$role" params={{ role: "admin" }} className="btn btn-primary">
             Open Administration workspace
           </Link>
+          {existing && <ApplicationSummary application={existing} nexaId={nexaId} />}
         </section>
       )}
 
@@ -227,27 +272,38 @@ function AdminApplicationPage() {
             Your application is now awaiting executive review. You will be able to check its status from your account.
             Submitting an application does not grant Administration access.
           </p>
-          <ApplicationSummary application={existing} />
+          <ApplicationSummary application={existing} nexaId={nexaId} />
         </section>
       )}
 
-      {phase === "ready" && !hasAdminRole && !justSubmitted && existing && existing.status !== "rejected" && (
+      {phase === "ready" && !hasAdminRole && !justSubmitted && existing && existing.status === "pending" && (
         <section className="surface rounded-xl p-5">
           <h2 className="font-semibold">Your Administration application</h2>
-          <ApplicationSummary application={existing} />
-          {existing.status === "approved" && (
-            <p className="mt-3 text-sm">
-              Your application was approved. Your Administration role should appear in your access records. If the
-              Administration workspace still doesn't open, contact NEXA support.
-            </p>
-          )}
+          <p className="mt-1 text-sm text-muted-foreground">
+            You already have an application awaiting review, so you can't submit another one.
+          </p>
+          <ApplicationSummary application={existing} nexaId={nexaId} />
+        </section>
+      )}
+
+      {phase === "ready" && !hasAdminRole && !justSubmitted && existing?.status === "approved" && (
+        <section className="surface rounded-xl p-5">
+          <h2 className="font-semibold">Your Administration application was approved</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The Administration role should now be assigned to this account. Open the Administration workspace to continue.
+            If it still doesn't open, contact NEXA support.
+          </p>
+          <ApplicationSummary application={existing} nexaId={nexaId} />
+          <Link to="/workspace/$role" params={{ role: "admin" }} className="btn btn-primary mt-4">
+            Open Administration workspace
+          </Link>
         </section>
       )}
 
       {phase === "ready" && !hasAdminRole && !justSubmitted && existing?.status === "rejected" && (
         <section className="surface rounded-xl p-5 text-sm">
           <h2 className="font-semibold">Your previous application was not approved</h2>
-          <ApplicationSummary application={existing} />
+          <ApplicationSummary application={existing} nexaId={nexaId} />
           <p className="mt-2 text-muted-foreground">You may submit a new application below.</p>
         </section>
       )}
@@ -271,15 +327,25 @@ function AdminApplicationPage() {
             </div>
           )}
 
-          <FormSection title="A. Applicant information">
+          <FormSection title="A. NEXA account identity">
+            {!nexaId && (
+              <div role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">
+                {IDENTITY_UNVERIFIED_MESSAGE}
+              </div>
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
+              <ReadOnlyField id="nexaId" label="NEXA ID" value={nexaId ?? "Not verified"} />
+              <ReadOnlyField id="accountEmail" label="Email address (from your account)" value={form.email} />
               <TextField id="firstName" label="First name" value={form.firstName} error={errors.firstName} max={FIELD_LIMITS.name} onChange={(v) => update("firstName", v)} />
               <TextField id="surname" label="Surname" value={form.surname} error={errors.surname} max={FIELD_LIMITS.name} onChange={(v) => update("surname", v)} />
-              <TextField id="email" label="Email address" type="email" value={form.email} error={errors.email} max={FIELD_LIMITS.email} onChange={(v) => update("email", v)} />
               <TextField id="phone" label="Contact phone number" type="tel" value={form.phone} error={errors.phone} max={FIELD_LIMITS.phone} onChange={(v) => update("phone", v)} />
               <TextField id="city" label="City" value={form.city} error={errors.city} max={FIELD_LIMITS.place} onChange={(v) => update("city", v)} />
               <TextField id="province" label="Province" value={form.province} error={errors.province} max={FIELD_LIMITS.place} onChange={(v) => update("province", v)} />
             </div>
+            {errors.email && <p className="text-xs text-red-400">{errors.email}</p>}
+            <p className="text-xs text-muted-foreground">
+              Your NEXA ID and email come from your signed-in account and can't be changed on this form.
+            </p>
           </FormSection>
 
           <FormSection title="B. Position information">
@@ -317,7 +383,7 @@ function AdminApplicationPage() {
             <TextArea id="availability" label="Availability and expected working schedule" value={form.availability} error={errors.availability} max={FIELD_LIMITS.availability} onChange={(v) => update("availability", v)} />
           </FormSection>
 
-          <FormSection title="D. Declarations and agreements">
+          <FormSection title="D. Declarations, policy acceptance and signature">
             <p className="text-sm text-muted-foreground">
               Please read each statement. All statements must be confirmed. Read the{" "}
               <Link to="/policies" className="text-gold underline">NEXA policies</Link> before you agree.
@@ -339,10 +405,19 @@ function AdminApplicationPage() {
             {errors.declarations && (
               <p id="declarations-error" className="text-xs text-red-400">{errors.declarations}</p>
             )}
+            <TextField
+              id="signatory"
+              label="Electronic signature: type your full legal name"
+              hint="Typing your name confirms that you accept the declarations above. It is recorded with your application."
+              value={form.signatory}
+              error={errors.signatory}
+              max={FIELD_LIMITS.signature}
+              onChange={(v) => update("signatory", v)}
+            />
           </FormSection>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
+            <button type="submit" className="btn btn-primary" disabled={submitting || !nexaId}>
               {submitting ? "Submitting..." : "Submit application"}
             </button>
             <p className="text-xs text-muted-foreground">
@@ -355,7 +430,7 @@ function AdminApplicationPage() {
   );
 }
 
-function ApplicationSummary({ application }: { application: ApplicationRecord }) {
+function ApplicationSummary({ application, nexaId }: { application: ApplicationRecord; nexaId: string | null }) {
   return (
     <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
       <div>
@@ -363,17 +438,27 @@ function ApplicationSummary({ application }: { application: ApplicationRecord })
         <dd className="font-semibold">{applicationReference(application.id)}</dd>
       </div>
       <div>
+        <dt className="text-muted-foreground">NEXA ID</dt>
+        <dd className="font-semibold">{nexaId ?? "Not verified"}</dd>
+      </div>
+      <div>
         <dt className="text-muted-foreground">Submitted</dt>
-        <dd>{new Date(application.created_at).toLocaleDateString()}</dd>
+        <dd>{formatRecordDateTime(application.created_at)}</dd>
       </div>
       <div>
         <dt className="text-muted-foreground">Status</dt>
         <dd>{APPLICATION_STATUS_COPY[application.status]}</dd>
       </div>
-      {application.status === "rejected" && application.review_notes && (
+      {application.status !== "pending" && (
+        <div>
+          <dt className="text-muted-foreground">Reviewed</dt>
+          <dd>{formatRecordDateTime(application.reviewed_at)}</dd>
+        </div>
+      )}
+      {application.status !== "pending" && application.review_notes && (
         <div className="sm:col-span-2">
           <dt className="text-muted-foreground">Review note</dt>
-          <dd>{application.review_notes}</dd>
+          <dd className="whitespace-pre-line">{application.review_notes}</dd>
         </div>
       )}
     </dl>
@@ -399,6 +484,15 @@ function Field({ id, label, error, children }: { id: string; label: string; erro
   );
 }
 
+function ReadOnlyField({ id, label, value }: { id: string; label: string; value: string }) {
+  return (
+    <div className="grid gap-1.5">
+      <label htmlFor={id} className="text-sm font-semibold">{label}</label>
+      <input id={id} className="field w-full opacity-80" value={value} readOnly aria-readonly="true" />
+    </div>
+  );
+}
+
 function TextField({
   id, label, value, error, hint, max, type = "text", onChange,
 }: {
@@ -412,7 +506,7 @@ function TextField({
         className="field w-full"
         value={value}
         maxLength={max}
-        autoComplete={id === "email" ? "email" : id === "phone" ? "tel" : undefined}
+        autoComplete={id === "phone" ? "tel" : "off"}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
         onChange={(e) => onChange(e.target.value)}

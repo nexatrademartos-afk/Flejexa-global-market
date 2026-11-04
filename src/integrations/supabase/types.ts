@@ -541,15 +541,18 @@ export type Database = {
         ]
       }
       nexa_person_identities: {
-        // Partial: only person_code is read by the frontend. Confirm against the live schema.
+        // Partial: only person_code and user_id are read by the frontend. Confirm against the live schema.
         Row: {
           person_code: string
+          user_id: string
         }
         Insert: {
           person_code?: string
+          user_id?: string
         }
         Update: {
           person_code?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -686,6 +689,11 @@ export type Database = {
           reviewed_by: string | null
           status: string
           updated_at: string
+          // Administration policy record. Written by the applicant as signatory/acknowledgements; policy_accepted_at is set by the database.
+          policy_version: string | null
+          policy_signatory_name: string | null
+          policy_acknowledgements: Json | null
+          policy_accepted_at: string | null
         }
         Insert: {
           applicant_id: string
@@ -698,6 +706,9 @@ export type Database = {
           reviewed_by?: string | null
           status?: string
           updated_at?: string
+          policy_version?: string | null
+          policy_signatory_name?: string | null
+          policy_acknowledgements?: Json | null
         }
         Update: {
           applicant_id?: string
@@ -710,6 +721,9 @@ export type Database = {
           reviewed_by?: string | null
           status?: string
           updated_at?: string
+          policy_version?: string | null
+          policy_signatory_name?: string | null
+          policy_acknowledgements?: Json | null
         }
         Relationships: []
       }
@@ -842,6 +856,21 @@ export type Database = {
           p_review_notes?: string
         }
         Returns: string
+      }
+      // PROPOSED contract, not yet installed. See docs/admin-application-contract.md and docs/sql/admin-application-proposed.sql.
+      get_admin_application_dossiers: {
+        Args: { p_application_ids: string[] }
+        Returns: {
+          application_id: string
+          applicant_id: string
+          nexa_id: string | null
+          account_email: string | null
+          account_created_at: string | null
+          account_confirmed_at: string | null
+          profile_full_name: string | null
+          profile_phone: string | null
+          assigned_roles: string[] | null
+        }[]
       }
     }
     Enums: {
