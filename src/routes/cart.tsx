@@ -5,7 +5,7 @@ import { fetchStoreCatalogue, formatStorePrice, type StoreCatalogue } from "@/li
 import { EmptyState, PreviewNotice, SkeletonGrid } from "@/components/states";
 import { ProductTile } from "@/components/ProductCard";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
-import { buildCartWhatsAppMessage, openWhatsApp } from "@/lib/Whatsapp";
+import { buildCartWhatsAppMessage, openWhatsApp } from "@/lib/whatsapp";
 import { BRAND, brandPageTitle } from "@/lib/brand";
 import { WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";

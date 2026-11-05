@@ -5,6 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchCanonicalCustomerCode } from "@/lib/customer-identity";
 import { resolveCustomerCode } from "@/lib/customer-code";
 import { countryName, isValidCountryIso2 } from "@/lib/countries";
+import {
+  buildProfileUpdatePayload,
+  describeSaveError,
+  readPendingEmail,
+  validateProfileForm,
+} from "@/lib/profile";
+import { ChangeEmailPanel } from "@/components/account/ChangeEmailPanel";
 import { Check, Loader2, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/account/profile")({
@@ -17,6 +24,7 @@ function CustomerProfilePage() {
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState("");
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [customerCode, setCustomerCode] = useState("");
   const [country, setCountry] = useState<string | null>(null);
 
@@ -53,6 +61,7 @@ function CustomerProfilePage() {
         if (!active) return;
         setUserId(user.id);
         setAuthEmail(user.email || "");
+        setPendingEmail(readPendingEmail(user));
 
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
@@ -116,36 +125,9 @@ function CustomerProfilePage() {
     event.preventDefault();
     if (saving || !userId) return;
 
-    const trimmedName = fullName.trim();
-    if (!trimmedName) {
-      setFeedback({
-        type: "error",
-        message: "Full name is required.",
-      });
-      return;
-    }
-
-    if (trimmedName.length > 100) {
-      setFeedback({
-        type: "error",
-        message: "Full name must be 100 characters or fewer.",
-      });
-      return;
-    }
-
-    if (phone.trim().length > 30) {
-      setFeedback({
-        type: "error",
-        message: "Phone number is too long.",
-      });
-      return;
-    }
-
-    if (address.trim().length > 300) {
-      setFeedback({
-        type: "error",
-        message: "Address is too long (300 characters max).",
-      });
+    const validationError = validateProfileForm({ fullName, phone, address });
+    if (validationError) {
+      setFeedback({ type: "error", message: validationError });
       return;
     }
 
@@ -153,19 +135,29 @@ function CustomerProfilePage() {
     setFeedback(null);
 
     try {
-      const updatePayload = {
-        full_name: trimmedName,
-        phone: phone.trim() || null,
-        address: address.trim() || null,
-        updated_at: new Date().toISOString(),
-      };
-
-      const { error: updateError } = await supabase
+      // Only the three editable columns are sent. updated_at is maintained by the database trigger.
+      // select() returns the rows actually updated, so a zero-row update is reported as a failure.
+      const { data, error: updateError } = await supabase
         .from("profiles")
-        .update(updatePayload)
-        .eq("id", userId);
+        .update(buildProfileUpdatePayload({ fullName, phone, address }))
+        .eq("id", userId)
+        .select("full_name, phone, address");
 
       if (updateError) throw updateError;
+
+      const saved = (Array.isArray(data) ? data[0] : undefined) as
+        | { full_name: string | null; phone: string | null; address: string | null }
+        | undefined;
+      if (!saved) {
+        throw new Error(
+          "Your changes were not saved because no profile record was updated. Refresh the page and try again.",
+        );
+      }
+
+      // Display the values the database confirmed.
+      setFullName(saved.full_name || "");
+      setPhone(saved.phone || "");
+      setAddress(saved.address || "");
 
       setFeedback({
         type: "success",
@@ -174,8 +166,7 @@ function CustomerProfilePage() {
     } catch (err) {
       setFeedback({
         type: "error",
-        message:
-          err instanceof Error ? err.message : "Failed to save profile changes. Please try again.",
+        message: describeSaveError(err, "Failed to save profile changes. Please try again."),
       });
     } finally {
       setSaving(false);
@@ -255,7 +246,9 @@ function CustomerProfilePage() {
               value={authEmail}
               className="field cursor-not-allowed opacity-70"
             />
-            <p className="text-[11px] text-muted-foreground">Linked to your sign-in credentials.</p>
+            <p className="text-[11px] text-muted-foreground">
+              Linked to your sign-in credentials. Change it with Change email below.
+            </p>
           </div>
 
           <div className="space-y-1.5">
@@ -324,6 +317,18 @@ function CustomerProfilePage() {
           </button>
         </div>
       </form>
+
+      {userId && (
+        <ChangeEmailPanel
+          userId={userId}
+          currentEmail={authEmail}
+          pendingEmail={pendingEmail}
+          onStatusChange={({ email, pendingEmail: pending }) => {
+            setAuthEmail(email);
+            setPendingEmail(pending);
+          }}
+        />
+      )}
     </AccountPage>
   );
 }

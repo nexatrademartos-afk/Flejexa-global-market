@@ -7,13 +7,18 @@ import {
 
 export const NEXA_WHATSAPP_NUMBER = BRAND.contact.whatsappDigits;
 
-export function openWhatsApp(message: string): void {
-  const url =
-    `https://wa.me/${NEXA_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+/** Standard WhatsApp Click to Chat link with the message safely URL-encoded. */
+export function buildWhatsAppUrl(message: string): string {
+  return `https://wa.me/${NEXA_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
 
-  if (typeof window !== "undefined") {
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
+/**
+ * Opens WhatsApp in the same tab. A new-window request can produce a blank or blocked
+ * page in Android browsers and embedded web views, so the browser navigates directly instead.
+ */
+export function openWhatsApp(message: string): void {
+  if (typeof window === "undefined") return;
+  window.location.assign(buildWhatsAppUrl(message));
 }
 
 export function buildProductWhatsAppMessage(

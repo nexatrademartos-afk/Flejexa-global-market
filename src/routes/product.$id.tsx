@@ -4,7 +4,7 @@ import { BRAND, brandPageTitle } from "@/lib/brand";
 import {
   buildProductWhatsAppMessage,
   openWhatsApp,
-} from "@/lib/Whatsapp";
+} from "@/lib/whatsapp";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { Heart, ShoppingCart, Zap, ChevronLeft, ChevronRight, Package } from "lucide-react";
 import { PlannedBadge } from "@/components/states";

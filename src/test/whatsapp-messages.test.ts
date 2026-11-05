@@ -64,3 +64,26 @@ describe("WhatsApp enquiry message builders", () => {
     expect(msg).not.toContain("Estimated item total");
   });
 });
+
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
+
+describe("WhatsApp Click to Chat link", () => {
+  it("builds a wa.me link to the configured number with the message encoded", () => {
+    const url = buildWhatsAppUrl("Hi & “hello” 100% — Order My Cart\nLine 2");
+    expect(url.startsWith(`https://wa.me/${NEXA_WHATSAPP_NUMBER}?text=`)).toBe(true);
+    expect(url).toContain("Hi%20%26%20");
+    expect(url).toContain("%0ALine%202");
+    expect(new URL(url).searchParams.get("text")).toBe("Hi & “hello” 100% — Order My Cart\nLine 2");
+  });
+
+  it("has a single helper file, so case-insensitive systems cannot load two versions", () => {
+    const names = readdirSync(join(process.cwd(), "src/lib")).map((name) => name.toLowerCase());
+    expect(names.filter((name) => name === "whatsapp.ts")).toHaveLength(1);
+  });
+
+  it("does not open WhatsApp in a popup window", () => {
+    expect(readFileSync(join(process.cwd(), "src/lib/whatsapp.ts"), "utf8")).not.toContain("window.open");
+  });
+});

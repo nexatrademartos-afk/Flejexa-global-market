@@ -4,14 +4,11 @@ import { ArrowLeft, LockKeyhole, ShieldCheck, RefreshCw, Settings } from "lucide
 import { AccountPage, accountHead } from "@/components/AccountPage";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
+import { WALLET_RECOVERY_QUESTIONS } from "@/lib/wallet-enrollment";
 
 type WalletRow = { id: string; wallet_number: string; status: string };
 
-const QUESTION_OPTIONS = [
-  "What was the name of your first school?",
-  "What city were you born in?",
-  "What was your childhood nickname?",
-];
+const QUESTION_OPTIONS = WALLET_RECOVERY_QUESTIONS;
 
 export const Route = createFileRoute("/account/wallet/settings")({
   head: accountHead(`${BRAND.shortName} Wallet Settings`, "Manage your wallet PIN and recovery security."),

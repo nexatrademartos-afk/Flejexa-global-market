@@ -18,7 +18,7 @@ import {
   buildCartWhatsAppMessage,
   NEXA_QUICK_MESSAGE,
   openWhatsApp,
-} from "@/lib/Whatsapp";
+} from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { sendAiChatMessage } from "@/lib/ai/server";
 import type { ChatMessage as AiChatMessage } from "@/lib/ai/types";
@@ -868,8 +868,8 @@ const [input, setInput] = useState("");
                   <button
                     type="button"
                     onClick={() => {
-                      openWhatsApp(NEXA_QUICK_MESSAGE);
                       setMenuOpen(false);
+                      openWhatsApp(NEXA_QUICK_MESSAGE);
                     }}
                     className="w-full rounded-xl bg-muted/60 px-3 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#25D366]/15 hover:text-[#128C7E]"
                   >
@@ -880,8 +880,8 @@ const [input, setInput] = useState("");
                     type="button"
                     onClick={() => {
                       const message = buildCartWhatsAppMessage(cart.items);
-                      openWhatsApp(message);
                       setMenuOpen(false);
+                      openWhatsApp(message);
                     }}
                     className="w-full rounded-xl bg-[#25D366]/15 px-3 py-2 text-left text-xs font-semibold text-[#128C7E] transition-colors hover:bg-[#25D366]/25"
                   >

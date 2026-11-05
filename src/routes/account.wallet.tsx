@@ -24,6 +24,8 @@ import { AccountPage, accountHead } from "@/components/AccountPage";
 import { BRAND } from "@/lib/brand";
 import { supabase } from "@/integrations/supabase/client";
 import { WalletRewardsPanel } from "@/components/wallet/WalletRewardsPanel";
+import { WalletEnrollmentWizard } from "@/components/wallet/WalletEnrollmentWizard";
+import { resolveWalletEntryState } from "@/lib/wallet-enrollment";
 
 type CustomerWallet = {
   id: string;
@@ -148,7 +150,7 @@ function WalletRoute() {
 function WalletPage() {
   const [wallet, setWallet] = useState<CustomerWallet | null>(null);
   const [loading, setLoading] = useState(true);
-  const [registering, setRegistering] = useState(false);
+  const [enrollmentOpen, setEnrollmentOpen] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [signedIn, setSignedIn] = useState(false);
@@ -383,54 +385,12 @@ function WalletPage() {
     };
   }, []);
 
-  async function registerWallet() {
-    if (registering) return;
-
-    setRegistering(true);
-    setError("");
-    setNotice("");
-
-    try {
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        setSignedIn(false);
-        setError("Please sign in before registering for a wallet.");
-        return;
-      }
-
-      setSignedIn(true);
-
-      const { error: registerError } = await supabase.rpc("register_my_wallet");
-
-      if (registerError) throw registerError;
-
-      const { data, error: walletError } = await supabase
-        .from("wallets")
-        .select("id, wallet_number, currency, status, created_at")
-        .maybeSingle();
-
-      if (walletError) throw walletError;
-
-      if (!data) {
-        throw new Error("Registration returned successfully, but the wallet could not be loaded.");
-      }
-
-      setWallet(data);
-      await checkPinStatus();
-      setNotice(
-        "Your wallet has been registered successfully. Set up your six-digit PIN to secure your wallet.",
-      );
-    } catch (err) {
-      console.error("Wallet registration failed:", err);
-      setError(
-        "We couldn't register your wallet. Please try again. If the problem continues, the database function or permissions may need checking.",
-      );
-    } finally {
-      setRegistering(false);
-    }
+  // Enrolment is handled by the wallet-enrollment wizard. After it succeeds, the PIN is required again.
+  function handleEnrollmentCompleted() {
+    setEnrollmentOpen(false);
+    setWalletUnlocked(false);
+    setUnlockPin("");
+    void loadWallet();
   }
 
   async function savePin() {
@@ -645,6 +605,13 @@ function WalletPage() {
 
   const statusLabel = wallet ? wallet.status.replaceAll("_", " ") : "Not registered";
 
+  const entryState = resolveWalletEntryState({
+    wallet,
+    pinSet: pinIsSet,
+    unlocked: walletUnlocked,
+    enrollmentOpen,
+  });
+
   if (loading) {
     return (
       <AccountPage title={`${BRAND.shortName} Wallet`} intro="Checking your wallet security.">
@@ -655,7 +622,21 @@ function WalletPage() {
     );
   }
 
-  if (wallet && pinIsSet !== false && !walletUnlocked) {
+  if (entryState === "enrollment") {
+    return (
+      <AccountPage
+        title="Create your wallet"
+        intro="A short secure setup: confirm your account, create your PIN and set up recovery."
+      >
+        <WalletEnrollmentWizard
+          onCompleted={handleEnrollmentCompleted}
+          onCancel={wallet ? undefined : () => setEnrollmentOpen(false)}
+        />
+      </AccountPage>
+    );
+  }
+
+  if (entryState === "unlock") {
     return (
       <AccountPage
         title="Unlock Your Wallet"
@@ -926,7 +907,7 @@ function WalletPage() {
                 <Wallet className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <h2 className="font-bold">Register for your wallet</h2>
+                <h2 className="font-bold">Create your wallet</h2>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   Wallet enrollment is optional and linked securely to your signed-in customer
                   account. Your website account does not automatically create a wallet.
@@ -934,22 +915,22 @@ function WalletPage() {
                 <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                   <li>• South African rand (ZAR) for the first release</li>
                   <li>• Unique wallet account number</li>
-                  <li>• Secure six-digit PIN setup will be a separate step</li>
+                  <li>• Secure six-digit PIN and two recovery questions, set up in a few steps</li>
                   <li>• Verification as required before restricted features activate</li>
                 </ul>
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => void registerWallet()}
-                    disabled={registering || !signedIn}
+                    onClick={() => setEnrollmentOpen(true)}
+                    disabled={!signedIn}
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gold px-5 py-2.5 text-sm font-bold text-background transition-opacity hover:opacity-90 disabled:opacity-50"
                   >
                     <Wallet className="h-4 w-4" />
-                    {registering ? "Registering wallet…" : "Register for my wallet"}
+                    Create Wallet
                   </button>
                   {!signedIn && (
                     <p className="text-xs text-muted-foreground">
-                      Sign in to register for a wallet.
+                      Sign in to create a wallet.
                     </p>
                   )}
                 </div>
