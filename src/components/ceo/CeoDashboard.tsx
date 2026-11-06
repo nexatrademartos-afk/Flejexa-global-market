@@ -119,6 +119,14 @@ export function CeoDashboard({
           <Link to="/account" className="btn btn-outline min-h-10 border-white/20 text-sm text-ink-foreground hover:bg-white/10">
             Customer Dashboard
           </Link>
+          <Link
+            to="/workspace/$role"
+            params={{ role: "finance" }}
+            className="btn btn-primary min-h-10 text-sm"
+            data-testid="ceo-finance-command-link"
+          >
+            Finance Command Centre
+          </Link>
         </div>
       </header>
 
@@ -163,6 +171,16 @@ export function CeoDashboard({
               );
             })}
           </ul>
+          <div className="mt-2 border-t border-border pt-2">
+            <Link
+              to="/workspace/$role"
+              params={{ role: "finance" }}
+              className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold text-foreground transition hover:bg-muted"
+            >
+              <Wallet className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Finance Command Centre</span>
+            </Link>
+          </div>
         </nav>
 
         <main className="min-w-0 space-y-6" aria-label={activeSection.label}>
