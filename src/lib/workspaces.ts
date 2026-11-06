@@ -87,7 +87,7 @@ export const WORKSPACES: Workspace[] = [
   {
     key: "finance", name: "Finance", short: "FI",
     description: "Payments, payouts, commissions and reconciliation.",
-    access: "Finance staff only.",
+    access: "Finance staff and the CEO only.",
     modules: [
       { name: "Payments ledger", note: "Read from the payment provider once connected.", status: "planned" },
       { name: "Partner payouts", note: "", status: "planned" },

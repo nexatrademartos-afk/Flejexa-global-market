@@ -172,7 +172,8 @@ describe("CEO dashboard source safety", () => {
     expect(route).toContain("<CeoDashboard");
     expect(route).toContain("<AdminDashboard");
     expect(route).toContain("<StandardWorkspace");
-    expect(route).toContain("assignedRoles.includes(workspace.key)");
+    expect(route).toContain("assignedRoles.some((role) => permittedRoles.includes(role))");
+    expect(route).toContain("FINANCE_ACCESS_ROLES");
     expect(route).toContain('.from("user_roles")');
   });
 

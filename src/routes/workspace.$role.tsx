@@ -24,6 +24,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getWorkspace, type WorkspaceKey } from "@/lib/workspaces";
 import { PlannedBadge } from "@/components/states";
 import { CeoDashboard } from "@/components/ceo/CeoDashboard";
+import { FinanceCommandCentre } from "@/components/finance/FinanceCommandCentre";
+import { FINANCE_ACCESS_ROLES } from "@/lib/finance-command";
 import { AdminPage, type AdminTab } from "@/routes/admin";
 
 type AccessState =
@@ -276,7 +278,11 @@ function WorkspacePage() {
         Object.prototype.hasOwnProperty.call(ROLE_LABELS, role),
       );
 
-      if (!assignedRoles.includes(workspace.key)) {
+      // Finance is opened by CEO or Finance accounts. Every other workspace stays role-specific.
+      const permittedRoles: string[] =
+        workspace.key === "finance" ? [...FINANCE_ACCESS_ROLES] : [workspace.key];
+
+      if (!assignedRoles.some((role) => permittedRoles.includes(role))) {
         setAccess({
           status: "denied",
           roles: assignedRoles,
@@ -434,6 +440,12 @@ function WorkspacePage() {
               name={access.name}
               accountCode={roleDisplayCode(access.accountCode, "ceo")}
               userId={access.userId}
+            />
+          ) : workspace.key === "finance" ? (
+            <FinanceCommandCentre
+              name={access.name}
+              accountCode={roleDisplayCode(access.accountCode, "finance")}
+              roles={access.roles}
             />
           ) : (
             <StandardWorkspace

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { asNumber, asRecord, asText, callCeoRpc, countRows, useCeoResource, valueAt, type CeoResult, type JsonRecord } from "@/lib/ceo-dashboard";
 import { CountTable, Metric, Notice, Panel, RefreshButton, ResourceNotice } from "./ceo-ui";
@@ -21,7 +22,14 @@ export function CeoFinance() {
         id="ceo-finance"
         title="Finance & Wallet Oversight"
         description="Record counts for wallets and the ledger. No balances or revenue figures are calculated here."
-        actions={<RefreshButton onClick={finance.reload} busy={finance.status === "loading"} />}
+        actions={
+          <>
+            <Link to="/workspace/$role" params={{ role: "finance" }} className="btn btn-primary min-h-10 text-sm">
+              Open Finance Command Centre
+            </Link>
+            <RefreshButton onClick={finance.reload} busy={finance.status === "loading"} />
+          </>
+        }
       >
         <ResourceNotice status={finance.status} error={finance.error} onRetry={finance.reload} />
         {finance.status === "ready" && (
