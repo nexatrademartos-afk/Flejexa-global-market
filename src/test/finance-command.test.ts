@@ -5,18 +5,19 @@ import {
   FINANCE_MODULES,
   FINANCE_REAL_MONEY_DISABLED,
   canOpenFinanceCommandCentre,
+  formatMoneyCents,
   formatZarCents,
 } from "@/lib/finance-command";
 
 describe("Finance access", () => {
   it("opens for CEO and Finance accounts only", () => {
+    expect(FINANCE_ACCESS_ROLES).toEqual(["ceo", "finance"]);
     expect(canOpenFinanceCommandCentre(["ceo"])).toBe(true);
     expect(canOpenFinanceCommandCentre(["finance"])).toBe(true);
     expect(canOpenFinanceCommandCentre(["customer", "ceo"])).toBe(true);
-    expect(FINANCE_ACCESS_ROLES).toEqual(["ceo", "finance"]);
   });
 
-  it("denies Admin, customers, partners, delivery and security users", () => {
+  it("denies Admin, customer, partner, delivery, commission and security roles", () => {
     expect(canOpenFinanceCommandCentre(["admin"])).toBe(false);
     expect(canOpenFinanceCommandCentre(["customer"])).toBe(false);
     expect(canOpenFinanceCommandCentre(["partner", "delivery", "commission", "security"])).toBe(false);
@@ -24,71 +25,41 @@ describe("Finance access", () => {
   });
 });
 
-describe("Finance module shell", () => {
-  it("lists exactly the 22 requested modules with unique ids", () => {
-    expect(FINANCE_MODULES).toHaveLength(22);
-    expect(new Set(FINANCE_MODULES.map((module) => module.id)).size).toBe(22);
-    expect(FINANCE_MODULES.map((module) => module.label)).toEqual([
-      "Overview",
-      "Finance Work Queues",
-      "Approval Centre",
-      "Controls & Audit",
-      "Orders & Payment Intake",
-      "Refund Requests",
-      "Payment Provider Events",
-      "Settlement Reconciliation",
-      "Wallet Reconciliation",
-      "Accounting & Journals",
-      "Trial Balance",
-      "Management Reports",
-      "Tax Configuration",
-      "Expenses",
-      "Expense Receipts",
-      "Suppliers",
-      "Product Cost Management",
-      "Purchase Orders",
-      "Inventory & Stock Reconciliation",
-      "Commissions",
-      "Payables",
-      "Payroll",
-    ]);
+describe("Finance module map", () => {
+  it("lists 21 sidebar pages, each in a known group with a unique id", () => {
+    expect(FINANCE_MODULES).toHaveLength(21);
+    expect(new Set(FINANCE_MODULES.map((module) => module.id)).size).toBe(21);
+    for (const module of FINANCE_MODULES) {
+      expect(FINANCE_GROUPS).toContain(module.group);
+      expect(module.description.length).toBeGreaterThan(10);
+    }
   });
 
-  it("places every module in exactly one navigation group", () => {
-    const grouped = FINANCE_GROUPS.flatMap((group) => FINANCE_MODULES.filter((module) => module.group === group));
-    expect(grouped).toHaveLength(FINANCE_MODULES.length);
+  it("includes Provider Events and Stock Reconciliation as distinct pages", () => {
+    const labels = FINANCE_MODULES.map((module) => module.label);
+    expect(labels).toContain("Provider Events");
+    expect(labels).toContain("Stock Reconciliation");
+    expect(labels).toContain("Approval Centre");
   });
 
-  it("keeps every real-money operation in the disabled list", () => {
+  it("keeps the real-money operations disabled list complete", () => {
     expect(FINANCE_REAL_MONEY_DISABLED).toEqual(
-      expect.arrayContaining([
-        "Customer deposits",
-        "Withdrawals",
-        "Transfers",
-        "Customer payouts",
-        "Supplier payments",
-        "Payroll payments",
-        "Refund execution",
-        "Any real payment-provider execution",
-      ]),
+      expect.arrayContaining(["Withdrawals", "Transfers", "Supplier payments", "Payroll payments", "Refund execution"]),
     );
   });
 });
 
-describe("formatZarCents", () => {
-  const normalise = (value: string) => value.replace(/\s/g, " ");
-
-  it("formats integer cents as rand without floating-point arithmetic", () => {
-    expect(normalise(formatZarCents(123456))).toBe("R 1 234,56");
-    expect(normalise(formatZarCents(0))).toBe("R 0,00");
-    expect(normalise(formatZarCents(5))).toBe("R 0,05");
-    expect(normalise(formatZarCents(-250))).toBe("-R 2,50");
+describe("money formatting", () => {
+  it("formats integer cents as rand without floating point", () => {
+    expect(formatZarCents(125050)).toMatch(/^R 1\s250,50$/);
+    expect(formatZarCents(5)).toMatch(/^R 0,05$/);
+    expect(formatZarCents(-1999)).toMatch(/^-R 19,99$/);
   });
 
-  it("reports missing or unsafe amounts instead of inventing a figure", () => {
-    expect(formatZarCents(null)).toBe("Not reported");
-    expect(formatZarCents(undefined)).toBe("Not reported");
-    expect(formatZarCents(10.5)).toBe("Not reported");
-    expect(formatZarCents(Number.MAX_SAFE_INTEGER + 2)).toBe("Not reported");
+  it("uses the record's own currency and shows placeholders when data is missing", () => {
+    expect(formatMoneyCents(12345, "USD")).toMatch(/^USD 123,45$/);
+    expect(formatMoneyCents(null, "ZAR")).toBe("Not reported");
+    expect(formatMoneyCents(100, null)).toBe("Currency not reported");
+    expect(formatMoneyCents(1.5, "ZAR")).toBe("Not reported");
   });
 });

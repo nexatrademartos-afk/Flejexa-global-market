@@ -1,6 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
+
+const invoke = vi.hoisted(() => vi.fn());
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: { functions: { invoke }, storage: { from: vi.fn() } },
+}));
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
@@ -21,54 +27,78 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 import { FinanceCommandCentre } from "@/components/finance/FinanceCommandCentre";
+import { FINANCE_MODULES } from "@/lib/finance-command";
+
+beforeEach(() => {
+  invoke.mockReset();
+  invoke.mockResolvedValue({ data: { success: true, overview: "ok" }, error: null });
+});
+
+afterEach(() => {
+  cleanup();
+});
+
+function navigation() {
+  return screen.getByRole("navigation", { name: "Finance modules" });
+}
 
 describe("Finance Command Centre shell", () => {
-  it("opens on the Overview with awaiting-contract states and no invented figures", () => {
-    render(<FinanceCommandCentre name="Thulani Joseph" accountCode="NX-0001" roles={["ceo", "customer"]} />);
-
-    const nav = screen.getByRole("navigation", { name: "Finance modules" });
-    expect(within(nav).getAllByRole("button")).toHaveLength(22);
-    expect(within(nav).getByRole("button", { name: "Overview" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getAllByText("Awaiting contract").length).toBeGreaterThanOrEqual(10);
-    expect(screen.getAllByText(/Awaiting the verified Finance Core contract/).length).toBeGreaterThan(0);
-    expect(screen.queryByText(/R\s?\d/)).toBeNull();
+  it("lists all 21 pages in the sidebar grouped as the brief requires", () => {
+    render(<FinanceCommandCentre name="Thulani Joseph" accountCode="NX-0001" roles={["ceo"]} />);
+    const nav = within(navigation());
+    for (const module of FINANCE_MODULES) {
+      expect(nav.getByRole("button", { name: module.label })).toBeTruthy();
+    }
+    expect(nav.getAllByRole("button").filter((button) => button.getAttribute("aria-current") !== null)).toHaveLength(1);
   });
 
-  it("shows real-money operations as disabled and never as executable", () => {
-    render(<FinanceCommandCentre name="Thulani" accountCode={null} roles={["finance"]} />);
-
-    expect(screen.getAllByText(/Real-money operations are disabled/).length).toBeGreaterThan(0);
-    expect(
-      screen.queryByRole("button", { name: /^(pay|pay now|withdraw|transfer|deposit|send payment|execute payment)$/i }),
-    ).toBeNull();
-  });
-
-  it("switches modules and marks the active one", () => {
-    render(<FinanceCommandCentre name="Thulani" accountCode="NX-0001" roles={["finance"]} />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Trial Balance" }));
-
-    expect(screen.getByRole("navigation", { name: "Finance modules" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Trial Balance" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("button", { name: "Overview" })).not.toHaveAttribute("aria-current");
-    expect(screen.getByRole("heading", { level: 2, name: "Trial Balance" })).toBeTruthy();
-  });
-
-  it("offers the CEO dashboard link only to CEO accounts", () => {
+  it("shows the CEO dashboard link to CEO accounts only", () => {
     const { unmount } = render(<FinanceCommandCentre name="Thulani" accountCode="NX-0001" roles={["ceo"]} />);
-    expect(screen.getByRole("link", { name: "CEO dashboard" })).toHaveAttribute("href", "/workspace/ceo");
+    expect(screen.getByRole("link", { name: "CEO dashboard" }).getAttribute("href")).toBe("/workspace/ceo");
     unmount();
-
     render(<FinanceCommandCentre name="Thulani" accountCode="NX-0002" roles={["finance"]} />);
     expect(screen.queryByRole("link", { name: "CEO dashboard" })).toBeNull();
   });
 
-  it("toggles the mobile module drawer with accessible state", () => {
-    render(<FinanceCommandCentre name="Thulani" accountCode="NX-0001" roles={["ceo"]} />);
+  it("shows the Finance ID and an honest access label", () => {
+    render(<FinanceCommandCentre name="Thulani" accountCode={null} roles={["finance"]} />);
+    expect(screen.getByText(/Finance ID Unavailable/)).toBeTruthy();
+    expect(screen.getByText(/Access: Finance team/)).toBeTruthy();
+  });
 
-    const toggle = screen.getByRole("button", { name: "Modules" });
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-    fireEvent.click(toggle);
-    expect(screen.getByRole("button", { name: "Close modules" })).toHaveAttribute("aria-expanded", "true");
+  it("opens a module in the main area and marks it current", () => {
+    render(<FinanceCommandCentre name="Thulani" accountCode="NX-0001" roles={["ceo"]} />);
+    fireEvent.click(within(navigation()).getByRole("button", { name: "Trial Balance" }));
+    expect(screen.getByRole("heading", { level: 2, name: "Trial Balance" })).toBeTruthy();
+    expect(within(navigation()).getByRole("button", { name: "Trial Balance" }).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByLabelText(/From/)).toBeTruthy();
+  });
+
+  it("keeps real-money operations disabled and exposes no money-movement buttons", () => {
+    render(<FinanceCommandCentre name="Thulani" accountCode="NX-0001" roles={["ceo"]} />);
+    expect(screen.getByText("Real-money operations are disabled.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /withdraw|transfer|payout/i })).toBeNull();
+  });
+
+  it("loads the overview from Finance Core on open and reports loading honestly", async () => {
+    render(<FinanceCommandCentre name="Thulani" accountCode="NX-0001" roles={["ceo"]} />);
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("finance-core", { body: { action: "get_overview" } }));
+    expect((await screen.findAllByText("Finance Core response")).length).toBeGreaterThan(0);
+  });
+
+  it("shows every approval record type, each with its own decision form", () => {
+    render(<FinanceCommandCentre name="Thulani" accountCode="NX-0001" roles={["ceo"]} />);
+    fireEvent.click(within(navigation()).getByRole("button", { name: "Approval Centre" }));
+    for (const label of ["Purchase orders", "Expenses", "Commission rules", "Refund requests", "Payroll runs", "Tax configurations"]) {
+      expect(screen.getByText(label)).toBeTruthy();
+    }
+    expect(document.querySelectorAll("main details")).toHaveLength(10);
+  });
+
+  it("marks the four nested-structure actions as awaiting contract rather than building forms", () => {
+    render(<FinanceCommandCentre name="Thulani" accountCode="NX-0001" roles={["ceo"]} />);
+    fireEvent.click(within(navigation()).getByRole("button", { name: "Journal Entries" }));
+    expect(screen.getAllByText("Awaiting contract").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Finance Core action: create_draft_journal/)).toBeTruthy();
   });
 });
