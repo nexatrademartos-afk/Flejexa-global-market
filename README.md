@@ -1,8 +1,8 @@
-NEXA GLOBAL MART
+FleJexa GLOBAL MART
 
 Shop More. Save More. Get Rewarded.
 
-Powered by TJC-OS — the powering system behind NEXA GLOBAL MART.
+Powered by TJC-OS — the powering system behind FleJexa GLOBAL MART.
 
 NEXA GLOBAL MART is a global marketplace project built to bring customers, sellers, and commerce services together through a unified digital platform. The project is designed to evolve as new marketplace features, customer services, seller tools, and platform capabilities are developed.
 
@@ -37,7 +37,7 @@ These are project goals, not a claim that every feature is already implemented. 
 
 Brand Identity
 
-The official marketplace name is NEXA GLOBAL MART.
+The official marketplace name is FleJexa GLOBAL MART.
 
 Element| Official identity
 Marketplace name| NEXA GLOBAL MART
