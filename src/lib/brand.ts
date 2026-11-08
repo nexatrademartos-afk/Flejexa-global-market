@@ -1,6 +1,5 @@
-
 /**
- * NEXA GLOBAL MART — Central Brand Identity
+ * FleJexa Global Mart — Central Brand Identity
  *
  * Shared public identity settings for the website.
  * Update these values when the brand changes.
@@ -9,8 +8,8 @@
  */
 
 export const BRAND = {
-  name: "NEXA GLOBAL MART",
-  shortName: "NEXA",
+  name: "FleJexa Global Mart",
+  shortName: "FleJexa",
   tagline: "Shop More. Save More. Get Rewarded.",
 
   poweredBy: "TJC-OS",
@@ -25,14 +24,14 @@ export const BRAND = {
   faviconPath: "/favicon.ico?v=2",
 
   description:
-    "Shop More. Save More. Get Rewarded. Discover products and global shopping opportunities with NEXA GLOBAL MART.",
+    "Shop More. Save More. Get Rewarded. Discover products and global shopping opportunities with FleJexa Global Mart.",
 } as const;
 
 /**
  * Builds consistent page titles using the central brand name.
  *
  * Example:
- * brandPageTitle("Shop") => "Shop — NEXA GLOBAL MART"
+ * brandPageTitle("Shop") => "Shop — FleJexa Global Mart"
  */
 export function brandPageTitle(pageTitle?: string): string {
   return pageTitle
