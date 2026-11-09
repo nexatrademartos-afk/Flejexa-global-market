@@ -52,6 +52,12 @@ const CATEGORY_ORDER = [
 
 export const Route = createFileRoute("/")({
   head: () => ({
+    links: [
+  {
+    rel: "canonical",
+    href: "https://flejexa-global-mart.tjc-os.workers.dev/",
+  },
+],
     meta: [
       {
         title: `${BRAND.name} — ${BRAND.tagline}`,
@@ -79,15 +85,13 @@ export const Route = createFileRoute("/")({
           "Discover products and global shopping opportunities. Shop More. Save More. Get Rewarded.",
       },
       {
-        property: "og:image",
-        content:
-          "https://nexa-global-mart.tjc-os.workers.dev/og-image.png",
-      },
-      {
-        property: "og:image:alt",
-        content:
-          "NEXA GLOBAL MART gold globe logo, silver wordmark, and Shop More. Save More. Get Rewarded. tagline.",
-      },
+  property: "og:image",
+  content: "https://flejexa-global-mart.tjc-os.workers.dev/og-image.png",
+},
+{
+  property: "og:image:alt",
+  content: "FleJexa Global Mart — Shop More. Save More. Get Rewarded.",
+},
       {
         property: "og:image:type",
         content: "image/png",
@@ -108,7 +112,7 @@ export const Route = createFileRoute("/")({
       {
         name: "twitter:image",
         content:
-          "https://nexa-global-mart.tjc-os.workers.dev/og-image.png",
+          "https://flejexa-global-mart.tjc-os.workers.dev/og-image.png",
       },
     ],
   }),
