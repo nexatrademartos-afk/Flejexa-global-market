@@ -30,7 +30,7 @@ head: () => ({
     },
     {
       property: "og:description",
-      content: `${BRAND.name is a marketplace built around people's needs, inclusive opportunity and a more connected business future.`,
+      content: ${BRAND.name} is a marketplace built around people's needs, inclusive opportunity and a more connected business future.`,
     },
   ],
   links: [
@@ -125,7 +125,7 @@ function AboutPage() {
 
             <div className="mt-5 space-y-4 text-sm leading-7 text-muted-foreground sm:text-base">
               <p>
-                NEXA GLOBAL MART is being built to bring shopping, sellers,
+                ${BRAND.name} is being built to bring shopping, sellers,
                 suppliers and business opportunities together in one
                 marketplace environment. We want to serve individuals,
                 families, everyday shoppers, small businesses, retailers,
@@ -159,7 +159,7 @@ function AboutPage() {
             </h2>
 
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              To grow NEXA GLOBAL MART into a trusted marketplace and service
+              To grow ${BRAND.name} into a trusted marketplace and service
               ecosystem serving South Africa, expanding across Africa and
               reaching international markets over time.
             </p>
@@ -188,8 +188,7 @@ function AboutPage() {
           </h2>
 
           <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-            These are the principles we want to carry into how FleJexa GLOBAL
-            MART develops, serves people and builds business relationships.
+            These are the principles we want to carry into how {BRAND.name} develops, serves people and builds business relationships.
           </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
