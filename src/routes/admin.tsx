@@ -40,6 +40,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { BRAND } from "@/lib/brand";
 import { AdminAiCopilot } from "@/components/admin/AdminAiCopilot";
+import { compressProductImage } from "@/lib/product-image";
 
 type Product = Tables<"products">;
 type Category = Tables<"categories">;
@@ -213,63 +214,6 @@ function safeTags(value: unknown): MerchandisingTag[] {
 }
 
 const MAX_PRODUCT_IMAGES = 5;
-const MAX_ORIGINAL_IMAGE_BYTES = 20 * 1024 * 1024;
-const TARGET_IMAGE_BYTES = 90 * 1024;
-const MAX_IMAGE_DIMENSION = 1400;
-
-async function compressProductImage(file: File): Promise<Blob> {
-  if (!file.type.startsWith("image/")) {
-    throw new Error("Please choose an image file.");
-  }
-  if (file.size > MAX_ORIGINAL_IMAGE_BYTES) {
-    throw new Error("Each original image must be 20 MB or smaller.");
-  }
-
-  const bitmap = await createImageBitmap(file);
-  try {
-    let width = bitmap.width;
-    let height = bitmap.height;
-    const scale = Math.min(
-      1,
-      MAX_IMAGE_DIMENSION / Math.max(width, height),
-    );
-    width = Math.max(1, Math.round(width * scale));
-    height = Math.max(1, Math.round(height * scale));
-
-    for (let resizeAttempt = 0; resizeAttempt < 6; resizeAttempt++) {
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const context = canvas.getContext("2d");
-      if (!context) {
-        throw new Error("Your browser could not process this image.");
-      }
-      context.drawImage(bitmap, 0, 0, width, height);
-
-      for (const quality of [0.88, 0.8, 0.72, 0.64, 0.56, 0.48]) {
-        const blob = await new Promise<Blob>((resolve, reject) => {
-          canvas.toBlob(
-            (result) => {
-              if (result) resolve(result);
-              else reject(new Error("Image compression failed."));
-            },
-            "image/webp",
-            quality,
-          );
-        });
-
-        if (blob.size <= TARGET_IMAGE_BYTES) return blob;
-      }
-
-      width = Math.max(1, Math.round(width * 0.8));
-      height = Math.max(1, Math.round(height * 0.8));
-    }
-
-    throw new Error("This image could not be reduced enough. Please choose a simpler or smaller image.");
-  } finally {
-    bitmap.close();
-  }
-}
 
 function getProductImageUrl(path: string): string {
   if (!path) return "";
@@ -323,6 +267,7 @@ const [searchText, setSearchText] = useState("");
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState(false);
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const [previewImageIndex, setPreviewImageIndex] = useState(0);
   const [orderDetail, setOrderDetail] = useState<Order | null>(null);
@@ -423,6 +368,7 @@ const [searchText, setSearchText] = useState("");
     setForm(emptyForm);
     setMessage("");
     setErrorMessage("");
+    setImageUploadError(false);
   }
 
   function resetCategoryForm() {
@@ -456,6 +402,7 @@ const [searchText, setSearchText] = useState("");
       is_featured: product.is_featured,
       merchandising_tags: safeTags((product as Product & { merchandising_tags?: unknown }).merchandising_tags),
     });
+    setImageUploadError(false);
     setMessage("");
     setErrorMessage("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -469,43 +416,119 @@ const [searchText, setSearchText] = useState("");
   }
 
   async function uploadProductImages(files: FileList | null) {
-    if (!files?.length) return;
-    const selected = Array.from(files);
-    const remaining = MAX_PRODUCT_IMAGES - form.gallery_urls.length;
-    if (selected.length > remaining) {
-      setErrorMessage(`You can add only ${remaining} more image(s). The limit is five per product.`);
-      return;
-    }
-    setUploadingImages(true);
-    setErrorMessage("");
-    setMessage("");
-    try {
-      for (const file of selected) {
-        const compressed = await compressProductImage(file);
-        const path = `products/${crypto.randomUUID()}.webp`;
-        const { error } = await supabase.storage.from("store-media").upload(path, compressed, { contentType: "image/webp", cacheControl: "31536000", upsert: false });
-        if (error) throw error;
-        setForm((current) => ({ ...current, gallery_urls: [...current.gallery_urls, path], image_url: current.image_url || path }));
-      }
-      setMessage("Image upload complete. Save the product to keep the changes.");
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Could not upload the image.");
-    } finally {
-      setUploadingImages(false);
-    }
+  if (!files?.length) return;
+
+  const selected = Array.from(files);
+  const remaining = MAX_PRODUCT_IMAGES - form.gallery_urls.length;
+
+  if (selected.length > remaining) {
+    setErrorMessage(
+      `You can add only ${remaining} more image(s). The limit is five per product.`,
+    );
+    return;
   }
 
-  function removeProductImage(path: string) {
-    setForm((current) => {
-      const gallery_urls = current.gallery_urls.filter((item) => item !== path);
-      return { ...current, gallery_urls, image_url: current.image_url === path ? gallery_urls[0] ?? "" : current.image_url };
-    });
+  setUploadingImages(true);
+  setErrorMessage("");
+  setMessage("");
+
+  const uploadedPaths: string[] = [];
+
+  try {
+    for (const file of selected) {
+      const compressed = await compressProductImage(file);
+
+      if (compressed.type !== "image/webp") {
+        throw new Error(
+          "Your browser could not create a WebP image. Please try another browser or image.",
+        );
+      }
+
+      if (compressed.size > 150 * 1024) {
+        throw new Error(
+          "The compressed image is larger than 150 KB. Please choose another image.",
+        );
+      }
+
+      const path = `products/${crypto.randomUUID()}.webp`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("store-media")
+        .upload(path, compressed, {
+          contentType: "image/webp",
+          cacheControl: "31536000",
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      uploadedPaths.push(path);
+
+      // Confirm that the uploaded object can actually be retrieved.
+      const { data: storedImage, error: verifyError } =
+        await supabase.storage.from("store-media").download(path);
+
+      if (verifyError) {
+        throw new Error(
+          `The image uploaded but could not be verified: ${verifyError.message}`,
+        );
+      }
+
+      if (!storedImage || storedImage.size === 0) {
+        throw new Error(
+          "The uploaded image appears to be empty. Please try again.",
+        );
+      }
+    }
+
+    // Add images to the form only after the entire batch is verified.
+    setForm((current) => ({
+      ...current,
+      gallery_urls: [...current.gallery_urls, ...uploadedPaths],
+      image_url: current.image_url || uploadedPaths[0] || "",
+    }));
+
+    setImageUploadError(false);
+    setMessage("Images uploaded and verified. Save the product to keep the changes.");
+  } catch (error) {
+    // Avoid leaving partially uploaded images behind if a batch fails.
+    let cleanupMessage = "";
+
+    if (uploadedPaths.length > 0) {
+      const { error: cleanupError } = await supabase.storage
+        .from("store-media")
+        .remove(uploadedPaths);
+
+      if (cleanupError) {
+        cleanupMessage =
+          ` Some temporary files could not be cleaned up: ${cleanupError.message}`;
+      }
+    }
+
+    setImageUploadError(true);
+    setErrorMessage(
+      (error instanceof Error
+        ? error.message
+        : "Could not upload the images.") + cleanupMessage,
+    );
+  } finally {
+    setUploadingImages(false);
+  }
   }
 
   async function saveProduct(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (uploadingImages) { setErrorMessage("Please wait for the image upload to finish."); return; }
-    setSaving(true);
+    if (uploadingImages) {
+  setErrorMessage("Please wait for the image upload to finish.");
+  return;
+}
+
+if (imageUploadError) {
+  setErrorMessage(
+    "An image upload failed. Please upload the image successfully before saving this product.",
+  );
+  return;
+}
     setMessage("");
     setErrorMessage("");
     const name = form.name.trim();
