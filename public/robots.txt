@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://flejexa-global-mart.tjc-os.workers.dev/sitemap.xml
