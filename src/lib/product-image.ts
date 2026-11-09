@@ -49,6 +49,12 @@ export async function compressProductImage(file: File): Promise<Blob> {
           );
         });
 
+        if (blob.type !== "image/webp") {
+  throw new Error(
+    "Your browser does not support WebP image compression. Please try another browser.",
+  );
+        }
+
         if (!bestBlob || blob.size < bestBlob.size) {
           bestBlob = blob;
         }
