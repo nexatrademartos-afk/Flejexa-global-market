@@ -15,27 +15,31 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
-  head: () => ({
-    meta: [
-      {
-        title: "About Us — NEXA GLOBAL MART",
-      },
-      {
-        name: "description",
-        content:
-          "Discover the purpose behind NEXA GLOBAL MART: a marketplace vision focused on accessible shopping, business connections, affordability and opportunity.",
-      },
-      {
-        property: "og:title",
-        content: "About Us — NEXA GLOBAL MART",
-      },
-      {
-        property: "og:description",
-        content:
-          "A marketplace built around people's needs, inclusive opportunity and a more connected business future.",
-      },
-    ],
-  }),
+head: () => ({
+  meta: [
+    {
+      title: `About Us — ${BRAND.name}`,
+    },
+    {
+      name: "description",
+      content: `Discover ${BRAND.name}: a South African marketplace bringing together accessible shopping, business connections, useful products and opportunities.`,
+    },
+    {
+      property: "og:title",
+      content: `About Us — ${BRAND.name}`,
+    },
+    {
+      property: "og:description",
+      content: `${BRAND.name is a marketplace built around people's needs, inclusive opportunity and a more connected business future.`,
+    },
+  ],
+  links: [
+    {
+      rel: "canonical",
+      href: "https://flejexa-global-mart.tjc-os.workers.dev/about",
+    },
+  ],
+}),
   component: AboutPage,
 });
 
@@ -81,7 +85,7 @@ function AboutPage() {
           </h1>
 
           <p className="mt-6 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
-            NEXA GLOBAL MART is a global e-commerce vision rooted in a simple
+            `${BRAND.name} is a global e-commerce vision rooted in a simple
             belief: opportunity, useful products and access to services should
             not be reserved for only a particular group of people.
           </p>
@@ -102,7 +106,7 @@ function AboutPage() {
 
             <Link to="/sell" className="btn btn-on-ink">
               <Store className="h-4 w-4" />
-              Explore selling on NEXA
+              Explore selling on FleJexa 
             </Link>
           </div>
         </div>
@@ -184,7 +188,7 @@ function AboutPage() {
           </h2>
 
           <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-            These are the principles we want to carry into how NEXA GLOBAL
+            These are the principles we want to carry into how FleJexa GLOBAL
             MART develops, serves people and builds business relationships.
           </p>
 
@@ -295,7 +299,7 @@ function AboutPage() {
               </h2>
 
               <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-                NEXA GLOBAL MART is based on a South African starting point.
+                FleJexa GLOBAL MART is based on a South African starting point.
                 Our ambition is to expand our reach across other African
                 countries and, over time, into wider international markets.
                 We want to build connections that can help shoppers and
@@ -305,7 +309,7 @@ function AboutPage() {
 
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
-                The people and technology behind NEXA
+                The people and technology behind FleJexa 
               </p>
 
               <h2 className="mt-3 text-3xl font-bold">
@@ -313,7 +317,7 @@ function AboutPage() {
               </h2>
 
               <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-                NEXA GLOBAL MART was created through the work of Joseph
+                FleJexa GLOBAL MART was created through the work of Joseph
                 Chivandire and Thulani Joseph, with a shared ambition to
                 build a marketplace focused on people's needs, business
                 connections and opportunity.
