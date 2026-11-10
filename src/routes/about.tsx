@@ -188,9 +188,9 @@ function AboutPage() {
           </h2>
 
           <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-            These are the principles we want to carry into how {BRAND.name}
-            develops, serves people and builds business relationships.
-          </p>
+  These are the principles we want to carry into how {BRAND.name}{" "}
+  develops, serves people and builds business relationships.
+</p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {values.map((value) => {
