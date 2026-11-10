@@ -59,6 +59,44 @@ export const Route = createFileRoute("/product/$id")({
 
     const imageUrl = getStoreImageUrl(product.image_url);
 
+    const productImages = Array.from(
+      new Set(
+        [
+          product.image_url,
+          ...(Array.isArray(product.gallery) ? product.gallery : []),
+        ]
+          .map((imagePath) => getStoreImageUrl(imagePath))
+          .filter((url): url is string => Boolean(url)),
+      ),
+    );
+
+    const productStructuredData =
+      productImages.length > 0 &&
+      Number.isFinite(product.price) &&
+      product.price > 0 &&
+      product.stock > 0
+        ? {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: product.name,
+            ...(product.description?.trim()
+              ? {
+                  description: product.description
+                    .replace(/\s+/g, " ")
+                    .trim(),
+                }
+              : {}),
+            image: productImages,
+            offers: {
+              "@type": "Offer",
+              url: canonicalUrl,
+              price: product.price,
+              priceCurrency: "ZAR",
+              availability: "https://schema.org/InStock",
+            },
+          }
+        : null;
+    
     return {
       meta: [
         { title },
@@ -70,6 +108,13 @@ export const Route = createFileRoute("/product/$id")({
           name: "robots",
           content: "index, follow",
         },
+                ...(productStructuredData
+          ? [
+              {
+                "script:ld+json": productStructuredData,
+              },
+            ]
+          : []),
         {
           property: "og:type",
           content: "product",
