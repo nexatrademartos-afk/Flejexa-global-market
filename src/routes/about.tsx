@@ -15,31 +15,31 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
-head: () => ({
-  meta: [
-    {
-      title: `About Us — ${BRAND.name}`,
-    },
-    {
-      name: "description",
-      content: `Discover ${BRAND.name}: a South African marketplace bringing together accessible shopping, business connections, useful products and opportunities.`,
-    },
-    {
-      property: "og:title",
-      content: `About Us — ${BRAND.name}`,
-    },
-    {
-      property: "og:description",
-      content: ${BRAND.name} is a marketplace built around people's needs, inclusive opportunity and a more connected business future.`,
-    },
-  ],
-  links: [
-    {
-      rel: "canonical",
-      href: "https://flejexa-global-mart.tjc-os.workers.dev/about",
-    },
-  ],
-}),
+  head: () => ({
+    meta: [
+      {
+        title: `About Us — ${BRAND.name}`,
+      },
+      {
+        name: "description",
+        content: `Discover ${BRAND.name}: a South African marketplace bringing together accessible shopping, business connections, useful products and opportunities.`,
+      },
+      {
+        property: "og:title",
+        content: `About Us — ${BRAND.name}`,
+      },
+      {
+        property: "og:description",
+        content: `${BRAND.name} is a marketplace built around people's needs, inclusive opportunity and a more connected business future.`,
+      },
+    ],
+    links: [
+      {
+        rel: "canonical",
+        href: "https://flejexa-global-mart.tjc-os.workers.dev/about",
+      },
+    ],
+  }),
   component: AboutPage,
 });
 
@@ -85,7 +85,7 @@ function AboutPage() {
           </h1>
 
           <p className="mt-6 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
-            `${BRAND.name} is a global e-commerce vision rooted in a simple
+            {BRAND.name} is a global e-commerce vision rooted in a simple
             belief: opportunity, useful products and access to services should
             not be reserved for only a particular group of people.
           </p>
@@ -106,7 +106,7 @@ function AboutPage() {
 
             <Link to="/sell" className="btn btn-on-ink">
               <Store className="h-4 w-4" />
-              Explore selling on FleJexa 
+              Explore selling on FleJexa
             </Link>
           </div>
         </div>
@@ -125,7 +125,7 @@ function AboutPage() {
 
             <div className="mt-5 space-y-4 text-sm leading-7 text-muted-foreground sm:text-base">
               <p>
-                ${BRAND.name} is being built to bring shopping, sellers,
+                {BRAND.name} is being built to bring shopping, sellers,
                 suppliers and business opportunities together in one
                 marketplace environment. We want to serve individuals,
                 families, everyday shoppers, small businesses, retailers,
@@ -159,7 +159,7 @@ function AboutPage() {
             </h2>
 
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              To grow ${BRAND.name} into a trusted marketplace and service
+              To grow {BRAND.name} into a trusted marketplace and service
               ecosystem serving South Africa, expanding across Africa and
               reaching international markets over time.
             </p>
@@ -188,7 +188,8 @@ function AboutPage() {
           </h2>
 
           <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-            These are the principles we want to carry into how {BRAND.name} develops, serves people and builds business relationships.
+            These are the principles we want to carry into how {BRAND.name}
+            develops, serves people and builds business relationships.
           </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -270,8 +271,8 @@ function AboutPage() {
               A broader service ecosystem
             </h3>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">
-              Our future vision includes a proposed {BRAND.shortName} Wallet concept
-              for setting money aside for a later purchase, alongside
+              Our future vision includes a proposed {BRAND.shortName} Wallet
+              concept for setting money aside for a later purchase, alongside
               additional services we may introduce as the platform grows.
               These ideas are not presented as currently available services.
             </p>
@@ -298,7 +299,7 @@ function AboutPage() {
               </h2>
 
               <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-                FleJexa GLOBAL MART is based on a South African starting point.
+                {BRAND.name} is based on a South African starting point.
                 Our ambition is to expand our reach across other African
                 countries and, over time, into wider international markets.
                 We want to build connections that can help shoppers and
@@ -308,7 +309,7 @@ function AboutPage() {
 
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
-                The people and technology behind FleJexa 
+                The people and technology behind {BRAND.shortName}
               </p>
 
               <h2 className="mt-3 text-3xl font-bold">
@@ -316,7 +317,7 @@ function AboutPage() {
               </h2>
 
               <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-                FleJexa GLOBAL MART was created through the work of Joseph
+                {BRAND.name} was created through the work of Joseph
                 Chivandire and Thulani Joseph, with a shared ambition to
                 build a marketplace focused on people's needs, business
                 connections and opportunity.
@@ -363,5 +364,4 @@ function AboutPage() {
       </section>
     </main>
   );
-      }
-              
+}
