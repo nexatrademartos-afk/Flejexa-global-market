@@ -41,7 +41,7 @@ export const Route = createFileRoute("/product/$id")({
       return {
         meta: [
           { title: brandPageTitle("Product not found") },
-          { name: "robots", content: "noindex" },
+          { name: "robots", content: "noindex, nofollow" },
         ],
       };
     }
@@ -49,22 +49,93 @@ export const Route = createFileRoute("/product/$id")({
     const { product, categoryName } = loaderData;
     const title = brandPageTitle(product.name);
 
+    const description = (
+      product.description?.replace(/\s+/g, " ").trim() ||
+      `Shop ${product.name} in ${categoryName} at ${BRAND.name}.`
+    ).slice(0, 160);
+
+    const canonicalUrl =
+      `https://flejexa-global-mart.tjc-os.workers.dev/product/${encodeURIComponent(product.id)}`;
+
+    const imageUrl = getStoreImageUrl(product.image_url);
+
     return {
       meta: [
         { title },
         {
           name: "description",
-          content: `Shop ${product.name} in ${categoryName} at ${BRAND.name}.`,
+          content: description,
         },
-        { property: "og:title", content: title },
+        {
+          name: "robots",
+          content: "index, follow",
+        },
+        {
+          property: "og:type",
+          content: "product",
+        },
+        {
+          property: "og:site_name",
+          content: BRAND.name,
+        },
+        {
+          property: "og:title",
+          content: title,
+        },
         {
           property: "og:description",
-          content: `Explore ${product.name} at ${BRAND.name}.`,
+          content: description,
+        },
+        {
+          property: "og:url",
+          content: canonicalUrl,
+        },
+        ...(imageUrl
+          ? [
+              {
+                property: "og:image",
+                content: imageUrl,
+              },
+              {
+                property: "og:image:alt",
+                content: product.name,
+              },
+            ]
+          : []),
+        {
+          name: "twitter:card",
+          content: imageUrl ? "summary_large_image" : "summary",
+        },
+        {
+          name: "twitter:title",
+          content: title,
+        },
+        {
+          name: "twitter:description",
+          content: description,
+        },
+        ...(imageUrl
+          ? [
+              {
+                name: "twitter:image",
+                content: imageUrl,
+              },
+              {
+                name: "twitter:image:alt",
+                content: product.name,
+              },
+            ]
+          : []),
+      ],
+      links: [
+        {
+          rel: "canonical",
+          href: canonicalUrl,
         },
       ],
     };
   },
-
+  
   notFoundComponent: () => {
     const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
