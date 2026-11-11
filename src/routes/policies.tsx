@@ -1,15 +1,70 @@
-
+import { BRAND, brandPageTitle } from "@/lib/brand";
 import { createFileRoute } from "@tanstack/react-router";
 import { POLICY_REGISTRY } from "@/lib/policies";
 
 export const Route = createFileRoute("/policies")({
-  head: () => ({
+    head: () => ({
     meta: [
-      { title: brandPageTitle("Policy Centre") },
+      {
+        title: brandPageTitle("Policy Centre"),
+      },
       {
         name: "description",
-        content:
-          `Review ${BRAND.name} marketplace terms, privacy information and policies.`,
+        content: `Review the draft marketplace terms, privacy information and policies of ${BRAND.name}. These documents require legal and business review before final publication.`,
+      },
+      {
+        name: "robots",
+        content: "index, follow",
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:site_name",
+        content: BRAND.name,
+      },
+      {
+        property: "og:title",
+        content: brandPageTitle("Policy Centre"),
+      },
+      {
+        property: "og:description",
+        content: `Explore the draft marketplace policies of ${BRAND.name}. Legal and business review is required before these documents become final.`,
+      },
+      {
+        property: "og:url",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/policies",
+      },
+      {
+        property: "og:image",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/og-image.png",
+      },
+      {
+        property: "og:image:alt",
+        content: `${BRAND.name} — Policy Centre`,
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      {
+        name: "twitter:title",
+        content: brandPageTitle("Policy Centre"),
+      },
+      {
+        name: "twitter:description",
+        content: `Read the draft marketplace policies of ${BRAND.name}.`,
+      },
+      {
+        name: "twitter:image",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/og-image.png",
+      },
+    ],
+    links: [
+      {
+        rel: "canonical",
+        href: "https://flejexa-global-mart.tjc-os.workers.dev/policies",
       },
     ],
   }),
@@ -23,7 +78,7 @@ function PolicyCentre() {
     <main className="mx-auto max-w-4xl space-y-8 px-4 py-8">
       <header className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-wider text-gold">
-          NEXA GLOBAL MART
+          FleJexa GLOBAL MART
         </p>
 
         <h1 className="text-3xl font-bold">Policy Centre</h1>
