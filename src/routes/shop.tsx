@@ -16,6 +16,7 @@ type Search = {
   q?: string;
   page: number;
 };
+import { getFeatureRobotsMeta } from "@/lib/feature-seo";
 
 export const Route = createFileRoute("/shop")({
   validateSearch: (search: Record<string, unknown>): Search => {
@@ -42,10 +43,7 @@ export const Route = createFileRoute("/shop")({
         name: "description",
         content: `Browse available products and categories across ${BRAND.name}. Discover useful products and shop with confidence.`,
       },
-      {
-        name: "robots",
-        content: "index, follow",
-      },
+      ...getFeatureRobotsMeta("/shop"),
       {
         property: "og:type",
         content: "website",
