@@ -3,10 +3,73 @@ import { BRAND, brandPageTitle } from "@/lib/brand";
 import { PlannedBadge } from "@/components/states";
 
 export const Route = createFileRoute("/sell")({
-  head: () => ({ meta: [
-    { title: `Sell on ${BRAND.shortName} — Business Partners` }, { name: "description", content: `Apply to sell your shop or brand on ${BRAND.name}.` },
-    { property: "og:title", content: `Sell on ${BRAND.name}` }, { property: "og:description", content: `Shops, brands and businesses can apply to become ${BRAND.shortName} Business Partners.` },
-  ] }),
+  
+  head: () => ({
+    meta: [
+      {
+        title: brandPageTitle("Become a Business Partner"),
+      },
+      {
+        name: "description",
+        content: `Discover how your shop, brand or business can become a ${BRAND.shortName} Business Partner. Learn about approval, product listings and fulfilment.`,
+      },
+      {
+        name: "robots",
+        content: "index, follow",
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:site_name",
+        content: BRAND.name,
+      },
+      {
+        property: "og:title",
+        content: brandPageTitle("Become a Business Partner"),
+      },
+      {
+        property: "og:description",
+        content: `Explore the business partnership process at ${BRAND.name}, from approval and product listings to fulfilment options.`,
+      },
+      {
+        property: "og:url",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/sell",
+      },
+      {
+        property: "og:image",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/og-image.png",
+      },
+      {
+        property: "og:image:alt",
+        content: `${BRAND.name} — Business Partnerships`,
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      {
+        name: "twitter:title",
+        content: brandPageTitle("Become a Business Partner"),
+      },
+      {
+        name: "twitter:description",
+        content: `Learn how to become a business partner with ${BRAND.name}.`,
+      },
+      {
+        name: "twitter:image",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/og-image.png",
+      },
+    ],
+    links: [
+      {
+        rel: "canonical",
+        href: "https://flejexa-global-mart.tjc-os.workers.dev/sell",
+      },
+    ],
+  }),
+  
   component: Sell,
 });
 
