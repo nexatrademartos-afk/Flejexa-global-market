@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BRAND, brandPageTitle } from "@/lib/brand";
 import { PlannedBadge } from "@/components/states";
+import { getFeatureRobotsMeta } from "@/lib/feature-seo";
 
 export const Route = createFileRoute("/sell")({
   
@@ -13,10 +14,7 @@ export const Route = createFileRoute("/sell")({
         name: "description",
         content: `Discover how your shop, brand or business can become a ${BRAND.shortName} Business Partner. Learn about approval, product listings and fulfilment.`,
       },
-      {
-        name: "robots",
-        content: "index, follow",
-      },
+      ...getFeatureRobotsMeta("/sell"),
       {
         property: "og:type",
         content: "website",
