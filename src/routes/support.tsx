@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BRAND, brandPageTitle } from "@/lib/brand";
 import { Mail, MessageCircle, ShieldCheck, ArrowLeft } from "lucide-react";
+import { getFeatureRobotsMeta } from "@/lib/feature-seo";
 
 export const Route = createFileRoute("/support")({
 head: () => ({
@@ -10,6 +11,7 @@ meta: [
 name: "description",
 content: `Find contact and support information for ${BRAND.name}.`,
 },
+  ...getFeatureRobotsMeta("/support"),
 ],
 }),
 component: SupportPage,
@@ -28,7 +30,7 @@ Back to shopping
 
   <header className="space-y-3">
     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-      NEXA GLOBAL MART
+      FleJexa GLOBAL MART
     </p>
     <h1 className="font-display text-3xl font-bold">
       Contact & Support
