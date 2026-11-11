@@ -12,6 +12,7 @@ import {
   BriefcaseBusiness,
   Handshake,
 } from "lucide-react";
+import { getFeatureRobotsMeta } from "@/lib/feature-seo";
 
 export const Route = createFileRoute("/about")({
   
@@ -24,10 +25,7 @@ export const Route = createFileRoute("/about")({
         name: "description",
         content: `Discover ${BRAND.name}, a South African marketplace built around accessible shopping, business connections, useful products and opportunities.`,
       },
-      {
-        name: "robots",
-        content: "index, follow",
-      },
+      ...getFeatureRobotsMeta("/about"),
       {
         property: "og:type",
         content: "website",
