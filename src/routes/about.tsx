@@ -1,5 +1,4 @@
-
-import { BRAND } from "@/lib/brand";
+import { BRAND, brandPageTitle } from "@/lib/brand";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -81,7 +80,8 @@ export const Route = createFileRoute("/about")({
       },
     ],
   }),
-  
+  component: AboutPage,
+});
 
 const values = [
   {
