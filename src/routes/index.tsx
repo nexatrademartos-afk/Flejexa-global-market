@@ -6,6 +6,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Search, ChevronRight, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getFeatureRobotsMeta } from "@/lib/feature-seo";
 
 type Category = {
   id: string;
@@ -67,6 +68,7 @@ export const Route = createFileRoute("/")({
         content:
           `Discover products, explore global shopping opportunities, and shop with confidence at ${BRAND.name}. ${BRAND.tagline}`,
       },
+      ...getFeatureRobotsMeta("/"),
       {
         property: "og:type",
         content: "website",
