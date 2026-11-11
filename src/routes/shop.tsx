@@ -34,22 +34,71 @@ export const Route = createFileRoute("/shop")({
     };
   },
 
+  
   head: () => ({
     meta: [
       { title: brandPageTitle("Shop") },
       {
         name: "description",
-        content:
-          `Browse available products and categories across ${BRAND.name}.`,
+        content: `Browse available products and categories across ${BRAND.name}. Discover useful products and shop with confidence.`,
       },
-      { property: "og:title", content: brandPageTitle("Shop") },
+      {
+        name: "robots",
+        content: "index, follow",
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:site_name",
+        content: BRAND.name,
+      },
+      {
+        property: "og:title",
+        content: brandPageTitle("Shop"),
+      },
       {
         property: "og:description",
-        content:
-          "Explore the live marketplace catalogue and find products to suit you.",
+        content: `Explore available products across ${BRAND.name}. Browse categories, discover products and shop with confidence.`,
+      },
+      {
+        property: "og:url",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/shop",
+      },
+      {
+        property: "og:image",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/og-image.png",
+      },
+      {
+        property: "og:image:alt",
+        content: `${BRAND.name} — Shop More. Save More. Get Rewarded.`,
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      {
+        name: "twitter:title",
+        content: brandPageTitle("Shop"),
+      },
+      {
+        name: "twitter:description",
+        content: `Discover products and shop across ${BRAND.name}.`,
+      },
+      {
+        name: "twitter:image",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/og-image.png",
+      },
+    ],
+    links: [
+      {
+        rel: "canonical",
+        href: "https://flejexa-global-mart.tjc-os.workers.dev/shop",
       },
     ],
   }),
+  
 
   component: Shop,
 });
