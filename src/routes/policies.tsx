@@ -1,6 +1,7 @@
 import { BRAND, brandPageTitle } from "@/lib/brand";
 import { createFileRoute } from "@tanstack/react-router";
 import { POLICY_REGISTRY } from "@/lib/policies";
+import { getFeatureRobotsMeta } from "@/lib/feature-seo";
 
 export const Route = createFileRoute("/policies")({
     head: () => ({
@@ -12,10 +13,7 @@ export const Route = createFileRoute("/policies")({
         name: "description",
         content: `Review the draft marketplace terms, privacy information and policies of ${BRAND.name}. These documents require legal and business review before final publication.`,
       },
-      {
-        name: "robots",
-        content: "index, follow",
-      },
+      ...getFeatureRobotsMeta("/policies"),
       {
         property: "og:type",
         content: "website",
