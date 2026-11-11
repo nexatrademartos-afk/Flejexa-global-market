@@ -15,22 +15,63 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
+  
   head: () => ({
     meta: [
       {
-        title: `About Us — ${BRAND.name}`,
+        title: brandPageTitle("About Us"),
       },
       {
         name: "description",
-        content: `Discover ${BRAND.name}: a South African marketplace bringing together accessible shopping, business connections, useful products and opportunities.`,
+        content: `Discover ${BRAND.name}, a South African marketplace built around accessible shopping, business connections, useful products and opportunities.`,
+      },
+      {
+        name: "robots",
+        content: "index, follow",
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:site_name",
+        content: BRAND.name,
       },
       {
         property: "og:title",
-        content: `About Us — ${BRAND.name}`,
+        content: brandPageTitle("About Us"),
       },
       {
         property: "og:description",
-        content: `${BRAND.name} is a marketplace built around people's needs, inclusive opportunity and a more connected business future.`,
+        content: `${BRAND.name} is a marketplace built around people, inclusive opportunity, useful products and a more connected business future.`,
+      },
+      {
+        property: "og:url",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/about",
+      },
+      {
+        property: "og:image",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/og-image.png",
+      },
+      {
+        property: "og:image:alt",
+        content: `${BRAND.name} — Our story, purpose and vision`,
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      {
+        name: "twitter:title",
+        content: brandPageTitle("About Us"),
+      },
+      {
+        name: "twitter:description",
+        content: `Learn about the story, purpose and vision behind ${BRAND.name}.`,
+      },
+      {
+        name: "twitter:image",
+        content: "https://flejexa-global-mart.tjc-os.workers.dev/og-image.png",
       },
     ],
     links: [
@@ -40,8 +81,7 @@ export const Route = createFileRoute("/about")({
       },
     ],
   }),
-  component: AboutPage,
-});
+  
 
 const values = [
   {
