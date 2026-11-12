@@ -4,7 +4,7 @@ import { Package, Truck, MessageCircle, ShoppingBag } from "lucide-react";
 import { PlannedBadge } from "@/components/states";
 
 export const Route = createFileRoute("/account/orders")({
-  head: accountHead("Orders & Tracking", "Track your NEXA orders."),
+  head: accountHead("Orders & Tracking", "Track your FleJexa Global Mart orders."),
   component: AccountOrdersPage,
 });
 
@@ -31,7 +31,7 @@ function AccountOrdersPage() {
 
           <div className="mt-5 space-y-3 text-sm text-muted-foreground leading-relaxed">
             <p>
-              Currently, product orders on NEXA Trade Mart are coordinated directly via verified{" "}
+              Currently, product orders on FleJexa Global Mart are coordinated directly via verified{" "}
               <strong>WhatsApp order enquiries</strong> with the merchant team.
             </p>
             <p>
