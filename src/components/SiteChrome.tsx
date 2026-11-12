@@ -86,12 +86,12 @@ export function Logo() {
     <Link
       to="/"
       aria-label={`${BRAND.name} home`}
-      className="flex shrink-0 items-center transition-opacity hover:opacity-90"
+      className="flex min-w-0 flex-1 items-center transition-opacity hover:opacity-90 lg:flex-none"
     >
       <img
         src={BRAND.logoPath}
         alt={BRAND.name}
-        className="h-8 w-auto max-w-[180px] object-contain sm:h-9 sm:max-w-[220px]"
+        className="h-8 w-full max-w-none object-contain object-left sm:h-9 lg:w-auto lg:max-w-[220px]"
         fetchPriority="high"
       />
     </Link>
@@ -115,7 +115,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-gold/30 bg-background/95 backdrop-blur-md shadow-[0_2px_18px_rgba(212,175,55,0.08)]">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-3 sm:px-6">
-        <div className="flex min-w-0 items-center gap-6">
+        <div className="flex min-w-0 flex-1 items-center gap-6">
           <Logo />
 
           <nav
