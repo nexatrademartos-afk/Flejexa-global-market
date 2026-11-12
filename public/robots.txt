@@ -13,4 +13,6 @@ Allow: /
 User-agent: *
 Allow: /
 
+# Sitemap is generated from the feature registry (dynamic route).
+# Update the host only when the live domain changes (or set VITE_SITE_URL).
 Sitemap: https://flejexa-global-mart.tjc-os.workers.dev/sitemap.xml
