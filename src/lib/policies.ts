@@ -1,4 +1,3 @@
-
 export type PolicyId =
   | "terms"
   | "privacy"
@@ -34,12 +33,12 @@ export const POLICY_REGISTRY: Record<PolicyId, PolicyDocument> = {
     title: "Terms of Service",
     version: "1.0.0-draft",
     status: "review-required",
-    summary: "General rules for using NEXA GLOBAL MART.",
+    summary: "General rules for using FleJexa Global Mart.",
     sections: [
       {
         heading: "Platform status",
         body:
-          "NEXA GLOBAL MART is being developed as a marketplace for physical and digital products from NEXA and independent sellers. Features marked as preview or coming soon are not active services. Do not treat a preview cart as a confirmed order.",
+          "FleJexa Global Mart is being developed as a marketplace for physical and digital products from FleJexa and independent sellers. Features marked as preview or coming soon are not active services. Do not treat a preview cart as a confirmed order.",
       },
       {
         heading: "Accounts and eligibility",
@@ -54,17 +53,17 @@ export const POLICY_REGISTRY: Record<PolicyId, PolicyDocument> = {
       {
         heading: "Marketplace conduct",
         body:
-          "Users must not use NEXA for unlawful activity, fraud, scams, counterfeit or stolen goods, or other prohibited listings. NEXA may investigate reports and restrict content or accounts for serious or repeated violations, subject to applicable law.",
+          "Users must not use FleJexa Global Mart for unlawful activity, fraud, scams, counterfeit or stolen goods, or other prohibited listings. FleJexa may investigate reports and restrict content or accounts for serious or repeated violations, subject to applicable law.",
       },
       {
         heading: "Disputes and legal rights",
         body:
-          "NEXA may review available evidence when handling marketplace disputes. Nothing in these terms removes consumer protections or other rights that cannot lawfully be excluded. Applicable law, dispute processes and the legal entity operating the platform require legal review.",
+          "FleJexa may review available evidence when handling marketplace disputes. Nothing in these terms removes consumer protections or other rights that cannot lawfully be excluded. Applicable law, dispute processes and the legal entity operating the platform require legal review.",
       },
       {
         heading: "Changes and support",
         body:
-          "Material policy changes will be communicated before taking effect where practicable or legally required. Users may contact NEXA support through the support channels published on the live platform. Exact contact details must be configured before launch.",
+          "Material policy changes will be communicated before taking effect where practicable or legally required. Users may contact FleJexa support through the support channels published on the live platform. Exact contact details must be configured before launch.",
       },
     ],
   },
@@ -109,7 +108,7 @@ export const POLICY_REGISTRY: Record<PolicyId, PolicyDocument> = {
       {
         heading: "Order problems",
         body:
-          "Buyers can report orders that were not received, arrived damaged or defective, or materially differ from their descriptions. NEXA may review information from the buyer, seller and delivery provider before deciding an appropriate resolution.",
+          "Buyers can report orders that were not received, arrived damaged or defective, or materially differ from their descriptions. FleJexa may review information from the buyer, seller and delivery provider before deciding an appropriate resolution.",
       },
       {
         heading: "Cancellations and returns",
@@ -144,7 +143,7 @@ export const POLICY_REGISTRY: Record<PolicyId, PolicyDocument> = {
       {
         heading: "Tracking and delays",
         body:
-          "Tracking may be provided when available. For lost, delayed or disputed deliveries, NEXA may review the available order and delivery evidence and determine an appropriate resolution under the applicable policy and law.",
+          "Tracking may be provided when available. For lost, delayed or disputed deliveries, FleJexa may review the available order and delivery evidence and determine an appropriate resolution under the applicable policy and law.",
       },
       {
         heading: "Not yet finalised",
@@ -169,17 +168,17 @@ export const POLICY_REGISTRY: Record<PolicyId, PolicyDocument> = {
       {
         heading: "Verification and listing review",
         body:
-          "Sellers must complete the verification and approval process configured by NEXA. Verification document requirements, review timelines and the detailed approval process must be finalised before seller onboarding goes live.",
+          "Sellers must complete the verification and approval process configured by FleJexa. Verification document requirements, review timelines and the detailed approval process must be finalised before seller onboarding goes live.",
       },
       {
         heading: "Fees and settlement",
         body:
-          "NEXA may charge a commission or other fees only under terms disclosed to the seller. Commission rates, payment-provider arrangements, payout schedules, reserves and dispute-related holds must be agreed and published before the seller service goes live.",
+          "FleJexa may charge a commission or other fees only under terms disclosed to the seller. Commission rates, payment-provider arrangements, payout schedules, reserves and dispute-related holds must be agreed and published before the seller service goes live.",
       },
       {
         heading: "Complaints and enforcement",
         body:
-          "NEXA may review buyer complaints and seller evidence. Serious or repeated violations may result in listing restrictions, suspension or termination, subject to applicable law and any applicable review process.",
+          "FleJexa may review buyer complaints and seller evidence. Serious or repeated violations may result in listing restrictions, suspension or termination, subject to applicable law and any applicable review process.",
       },
     ],
   },
@@ -219,7 +218,7 @@ export const POLICY_REGISTRY: Record<PolicyId, PolicyDocument> = {
       {
         heading: "Reports and action",
         body:
-          "NEXA may investigate reported listings and account activity, request relevant information and restrict or remove content or access for serious or repeated violations. Users may ask support to review a restriction. Detailed reporting and intellectual-property complaint procedures require finalisation.",
+          "FleJexa may investigate reported listings and account activity, request relevant information and restrict or remove content or access for serious or repeated violations. Users may ask support to review a restriction. Detailed reporting and intellectual-property complaint procedures require finalisation.",
       },
     ],
   },
@@ -254,7 +253,7 @@ export const POLICY_REGISTRY: Record<PolicyId, PolicyDocument> = {
       {
         heading: "Contact and review",
         body:
-          "Users may contact NEXA support to report an issue. NEXA aims to respond within two business days, but this is a target rather than a guaranteed resolution deadline. A complaint may require further investigation or evidence from other parties.",
+          "Users may contact FleJexa support to report an issue. FleJexa aims to respond within two business days, but this is a target rather than a guaranteed resolution deadline. A complaint may require further investigation or evidence from other parties.",
       },
       {
         heading: "Appeals and external remedies",
