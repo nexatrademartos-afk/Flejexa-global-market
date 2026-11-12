@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { BRAND, brandPageTitle } from "@/lib/brand";
 
 export function AccountPage({
   title,
@@ -34,9 +35,11 @@ export function SignedOutBanner() {
 
 export const accountHead = (title: string, description: string) => () => ({
   meta: [
-    { title: `${title} — NEXA Account` },
+    { title: brandPageTitle(title) },
     { name: "description", content: description },
-    { property: "og:title", content: `${title} — NEXA Trade Mart` },
+    { property: "og:title", content: brandPageTitle(title) },
     { property: "og:description", content: description },
+    { property: "og:site_name", content: BRAND.name },
+    { name: "robots", content: "noindex, nofollow" },
   ],
 });
