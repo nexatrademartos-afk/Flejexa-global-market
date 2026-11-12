@@ -11,6 +11,12 @@ import type { FeatureRegistration } from "@/lib/feature-status";
  *
  * Keep policy-document approval separate from the availability
  * of the public Policy Centre page.
+ *
+ * Indexing automation:
+ * - sitemap.xml is generated only from features that pass
+ *   isFeaturePubliclyDiscoverable() (see src/lib/seo-sitemap.ts).
+ * - When policies are approved for public search, set indexable: true.
+ * - Thin "coming soon" pages stay indexable: false until content is useful.
  */
 
 export const FEATURE_REGISTRY: readonly FeatureRegistration[] = [
@@ -56,7 +62,8 @@ export const FEATURE_REGISTRY: readonly FeatureRegistration[] = [
     status: "coming_soon",
     audience: "public",
     published: true,
-    indexable: true,
+    // Not useful enough for search until partner content is complete.
+    indexable: false,
   },
   {
     id: "support",
@@ -67,7 +74,8 @@ export const FEATURE_REGISTRY: readonly FeatureRegistration[] = [
     status: "coming_soon",
     audience: "public",
     published: true,
-    indexable: true,
+    // Index after support content is real (not a thin shell).
+    indexable: false,
   },
   {
     id: "policies",
@@ -78,6 +86,7 @@ export const FEATURE_REGISTRY: readonly FeatureRegistration[] = [
     status: "active",
     audience: "public",
     published: true,
+    // Policies remain pending / draft — do not index until legal approval.
     indexable: false,
   },
 ] as const;
