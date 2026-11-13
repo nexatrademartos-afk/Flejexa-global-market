@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, ChevronRight, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getFeatureRobotsMeta } from "@/lib/feature-seo";
+import { useEffect, useMemo, useState } from "react";
 
 type Category = {
   id: string;
@@ -145,6 +146,17 @@ function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [activeBanner, setActiveBanner] = useState(0);
+
+useEffect(() => {
+  if (banners.length <= 1) return;
+
+  const timer = window.setInterval(() => {
+    setActiveBanner((current) => (current + 1) % banners.length);
+  }, 5000);
+
+  return () => window.clearInterval(timer);
+}, [banners.length]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -297,41 +309,94 @@ function Home() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <section className="border-b border-gold/20 bg-ink">
-        <div className="mx-auto max-w-6xl px-4 py-8 md:py-12">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-gold">
-            African-rooted · Globally minded
-          </p>
+      
+<section className="border-b border-gold/20 bg-ink">
+  <div className="mx-auto max-w-6xl px-4 py-5 md:py-7">
+    {banners.length > 0 && (
+      <div className="relative overflow-hidden rounded-2xl border border-gold/40 bg-black shadow-[0_0_24px_rgba(212,175,55,0.12)]">
+        {banners.map((banner, index) => {
+          const imageUrl = getPublicImageUrl(banner.image_url);
+          const imageFailed = failedImages.includes(`banner-${banner.id}`);
 
-          <h1 className="mt-4 text-3xl font-bold leading-tight sm:text-5xl">
-            <span className="text-gold">Shop More.</span>
-            <br />
-            <span className="text-slate-300">Save More.</span>
-            <br />
-            <span className="text-gold">Get Rewarded.</span>
-          </h1>
+          return (
+            <article
+              key={banner.id}
+              aria-hidden={index !== activeBanner}
+              className={
+                index === activeBanner
+                  ? "relative block"
+                  : "hidden"
+              }
+            >
+              <div className="relative aspect-[16/7] min-h-[190px] sm:min-h-[260px]">
+                {imageUrl && !imageFailed ? (
+                  <OfflineImage
+                    src={imageUrl}
+                    alt={banner.title}
+                    loading={index === activeBanner ? "eager" : "lazy"}
+                    className="h-full w-full object-cover"
+                    onError={() => markImageFailed(`banner-${banner.id}`)}
+                  />
+                ) : (
+                  <div className="grid h-full place-items-center bg-gradient-to-br from-ink via-black to-gold/20 px-5 text-center">
+                    <h2 className="text-2xl font-bold text-gold sm:text-4xl">
+                      {banner.title}
+                    </h2>
+                  </div>
+                )}
 
-          <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">
-            Discover products across fashion, footwear, electronics, household
-            essentials and more. Browse freely and create an account when
-            you’re ready.
-          </p>
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/65 to-transparent p-4 pt-14 sm:p-7 sm:pt-20">
+                  <h2 className="text-xl font-bold text-white sm:text-3xl">
+                    {banner.title}
+                  </h2>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a href="#catalogue" className="btn btn-gold">
-              <ShoppingBag className="h-4 w-4" />
-              Explore products
-            </a>
+                  {banner.subtitle && (
+                    <p className="mt-1 max-w-xl text-sm text-slate-200 sm:text-base">
+                      {banner.subtitle}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </article>
+          );
+        })}
 
-            {sessionReady && !signedIn && (
-              <Link to="/sign-up" className="btn btn-on-ink">
-                Create account
-              </Link>
-            )}
+        {banners.length > 1 && (
+          <div className="absolute bottom-3 right-4 z-10 flex items-center gap-2">
+            {banners.map((banner, index) => (
+              <button
+                key={banner.id}
+                type="button"
+                onClick={() => setActiveBanner(index)}
+                aria-label={`Show promotion ${index + 1}`}
+                aria-current={index === activeBanner ? "true" : undefined}
+                className={`h-2.5 rounded-full transition-all ${
+                  index === activeBanner
+                    ? "w-7 bg-gold"
+                    : "w-2.5 bg-white/60 hover:bg-white"
+                }`}
+              />
+            ))}
           </div>
-        </div>
-      </section>
+        )}
+      </div>
+    )}
 
+    <div className="mt-5 flex flex-wrap gap-3">
+      <a href="#catalogue" className="btn btn-gold">
+        <ShoppingBag className="h-4 w-4" />
+        Explore products
+      </a>
+
+      {sessionReady && !signedIn && (
+        <Link to="/sign-up" className="btn btn-on-ink">
+          Create account
+        </Link>
+      )}
+    </div>
+  </div>
+</section>
+      
       <section className="mx-auto max-w-6xl px-4 py-5">
         <form
           onSubmit={(event) => {
@@ -364,40 +429,6 @@ function Home() {
       </section>
 
       {banners.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 py-3">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-bold">Promotions</h2>
-            <span className="text-xs text-muted-foreground">
-              Swipe to explore
-            </span>
-          </div>
-
-          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3">
-            {banners.map((banner) => {
-              const imageUrl = getPublicImageUrl(banner.image_url);
-              const imageFailed = failedImages.includes(`banner-${banner.id}`);
-
-              return (
-                <article
-                  key={banner.id}
-                  className="relative min-w-[85%] snap-start overflow-hidden rounded-2xl border border-gold/40 bg-ink sm:min-w-[65%] md:min-w-[48%]"
-                >
-                  <div className="relative aspect-[16/7]">
-                    {imageUrl && !imageFailed ? (
-                      <OfflineImage
-                        src={imageUrl}
-                        alt={banner.title}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                        onError={() => markImageFailed(`banner-${banner.id}`)}
-                      />
-                    ) : (
-                      <div className="grid h-full place-items-center bg-card px-5 text-center">
-                        <p className="font-semibold text-gold">
-                          {banner.title}
-                        </p>
-                      </div>
-                    )}
 
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pt-12">
                       <h3 className="text-lg font-bold text-white">
