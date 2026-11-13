@@ -7,7 +7,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, ChevronRight, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getFeatureRobotsMeta } from "@/lib/feature-seo";
-import { useEffect, useMemo, useState } from "react";
 
 type Category = {
   id: string;
@@ -427,26 +426,6 @@ useEffect(() => {
           </button>
         </form>
       </section>
-
-      {banners.length > 0 && (
-
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pt-12">
-                      <h3 className="text-lg font-bold text-white">
-                        {banner.title}
-                      </h3>
-                      {banner.subtitle && (
-                        <p className="mt-1 text-sm text-slate-200">
-                          {banner.subtitle}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
 
       <section className="mx-auto max-w-6xl px-4 py-6">
         <div className="mb-3 flex items-center justify-between gap-3">
