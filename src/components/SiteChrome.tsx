@@ -1,3 +1,4 @@
+
 import { BRAND } from "@/lib/brand";
 
 import { useEffect, useState } from "react";
@@ -80,20 +81,39 @@ function useCustomerSignOut() {
   return { signOut, signingOut };
 }
 
-
 export function Logo() {
   return (
     <Link
       to="/"
       aria-label={`${BRAND.name} home`}
-      className="flex min-w-0 flex-1 items-center transition-opacity hover:opacity-90 lg:flex-none"
+      className="flex min-w-0 flex-none items-center gap-2.5 transition-opacity hover:opacity-90 sm:gap-3"
     >
-      <img
-        src={BRAND.logoPath}
-        alt={BRAND.name}
-        className="h-8 w-full max-w-none object-contain object-left sm:h-9 lg:w-auto lg:max-w-[220px]"
-        fetchPriority="high"
-      />
+      <span className="grid h-[72px] w-[72px] shrink-0 place-items-center overflow-hidden rounded-xl border border-gold/50 bg-ink shadow-[0_0_20px_rgba(212,175,55,0.16)] sm:h-[88px] sm:w-[88px]">
+        <img
+          src={BRAND.logoPath}
+          alt=""
+          className="h-full w-full object-contain p-0.5"
+          fetchPriority="high"
+        />
+      </span>
+
+      <span className="flex min-w-0 flex-col justify-center leading-tight">
+        <span className="font-display text-base font-extrabold tracking-wide text-gold sm:text-xl">
+          FleJexa
+        </span>
+
+        <span className="font-display text-sm font-bold tracking-wide text-slate-200 sm:text-lg">
+          Global Mart
+        </span>
+
+        <span className="mt-1 max-w-[170px] text-[9px] font-medium leading-tight text-slate-300 sm:max-w-none sm:text-[10px]">
+          {BRAND.tagline}
+        </span>
+
+        <span className="mt-1 text-[9px] font-semibold tracking-wide text-slate-400 sm:text-[10px]">
+          Powered by <span className="text-gold">{BRAND.poweredBy}</span>
+        </span>
+      </span>
     </Link>
   );
 }
