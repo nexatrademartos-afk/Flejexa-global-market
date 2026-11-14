@@ -182,7 +182,7 @@ function Shop() {
   const totalPages = paginated.total;
 
   return (
-    <main className="mx-auto min-h-screen max-w-6xl space-y-5 px-4 py-6 sm:py-8">
+    <div className="mx-auto min-h-screen max-w-6xl space-y-5 px-4 py-6 sm:py-8">
       {/* Single category browsing row — keep above promotional banners */}
       <section
         aria-label="Product categories"
@@ -348,6 +348,6 @@ function Shop() {
           )}
         </>
       )}
-    </main>
+    </dev>
   );
 }
