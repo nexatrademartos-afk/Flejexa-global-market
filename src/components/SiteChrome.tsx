@@ -2,7 +2,7 @@
 import { BRAND } from "@/lib/brand";
 
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Heart,
   Home,
@@ -506,6 +506,9 @@ export function WelcomeBanner() {
 
 export function MobileTabBar() {
   const { signedIn, sessionReady } = useCustomerSession();
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
 
   if (!sessionReady || signedIn) return null;
 
@@ -525,14 +528,19 @@ export function MobileTabBar() {
       {items.map(({ to, label, icon: Icon }) => {
         const isHeat = label === "FJX Heat";
 
+        const isActive =
+          isHeat
+            ? pathname === "/"
+            : label === "My FJX"
+              ? pathname === "/sign-in" || pathname === "/sign-up"
+              : pathname === to;
+
         return (
           <Link
             key={to}
             to={to}
-            activeOptions={{ exact: to === "/shop" || to === "/sell" }}
-            className={`relative flex min-h-14 flex-col items-center justify-end gap-1 text-[10px] font-medium ${
-              isHeat ? "text-gold" : "text-muted-foreground"
-            }`}
+            activeOptions={{ exact: true }}
+            className="relative flex min-h-14 flex-col items-center justify-end gap-1 text-[10px] font-medium text-muted-foreground"
           >
             {isHeat ? (
               <span className="-mt-7 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-gradient-to-br from-yellow-300 via-gold to-amber-700 shadow-[0_0_18px_rgba(212,175,55,0.45)]">
@@ -541,7 +549,10 @@ export function MobileTabBar() {
             ) : (
               <Icon className="h-5 w-5" />
             )}
-            <span>{label}</span>
+
+            <span className={isActive ? "text-gold" : "text-muted-foreground"}>
+              {label}
+            </span>
           </Link>
         );
       })}
