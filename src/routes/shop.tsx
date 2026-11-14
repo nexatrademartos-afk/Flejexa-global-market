@@ -9,6 +9,7 @@ import {
   paginate,
   type StoreCategory,
   type StoreProduct,
+  type StoreBanner,
 } from "@/lib/preview-data";
 
 type Search = {
@@ -17,6 +18,7 @@ type Search = {
   page: number;
 };
 import { getFeatureRobotsMeta } from "@/lib/feature-seo";
+import { PromotionalBannerCarousel } from "@/components/PromotionalBannerCarousel";
 
 export const Route = createFileRoute("/shop")({
   validateSearch: (search: Record<string, unknown>): Search => {
@@ -106,6 +108,7 @@ function Shop() {
 
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [categories, setCategories] = useState<StoreCategory[]>([]);
+  const [banners, setBanners] = useState<StoreBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
@@ -121,8 +124,9 @@ function Shop() {
 
         if (!active) return;
 
-        setProducts(catalogue.products);
-        setCategories(catalogue.categories);
+       setProducts(catalogue.products);
+       setCategories(catalogue.categories);
+       setBanners(catalogue.banners);
       } catch (error) {
         console.error("Unable to load the live shop catalogue:", error);
 
@@ -130,6 +134,7 @@ function Shop() {
           setLoadError(true);
           setProducts([]);
           setCategories([]);
+          setBanners([]);
         }
       } finally {
         if (active) {
@@ -178,23 +183,7 @@ function Shop() {
 
   return (
     <main className="mx-auto min-h-screen max-w-6xl space-y-5 px-4 py-6 sm:py-8">
-      <header className="surface space-y-2 rounded-2xl p-5 sm:p-7">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-          {BRAND.name}
-        </p>
-
-        <h1 className="text-3xl font-bold sm:text-4xl">Shop</h1>
-
-        <p className="text-sm font-bold uppercase tracking-[0.16em] text-gold sm:text-base">
-          {BRAND.tagline}
-        </p>
-
-        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          Explore available products across our marketplace. Browse freely
-          and use search or categories to narrow your choices.
-        </p>
-      </header>
-
+    <PromotionalBannerCarousel banners={banners} />
       {!q?.trim() && !category && (
         <ShopShowcase
           products={products}
