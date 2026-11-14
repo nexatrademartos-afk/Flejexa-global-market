@@ -437,7 +437,7 @@ export function WelcomeBanner() {
   useEffect(() => {
     if (!visible) return;
 
-    const timer = window.setTimeout(dismiss, 7000);
+  const timer = window.setTimeout(dismiss, 10000);
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") dismiss();
@@ -454,7 +454,7 @@ export function WelcomeBanner() {
   if (!sessionReady || signedIn || !visible) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center bg-transparent p-3 pt-4 sm:pt-6">
       <button
         type="button"
         aria-label="Continue browsing as a guest"
@@ -466,7 +466,7 @@ export function WelcomeBanner() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="flejexa-guest-welcome-title"
-        className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-gold/50 bg-[#101010] text-white shadow-[0_0_35px_rgba(212,175,55,0.2)]"
+      className="relative z-10 w-full max-w-[560px] max-h-[85dvh] overflow-y-auto rounded-2xl border border-gold/50 bg-[#101010] text-white shadow-[0_0_35px_rgba(212,175,55,0.2)]"
       >
         <div className="flex items-center justify-between border-b border-gold/20 px-5 py-4">
           <div>
@@ -488,7 +488,7 @@ export function WelcomeBanner() {
           </button>
         </div>
 
-        <div className="space-y-4 p-5 sm:p-6">
+      <div className="space-y-3 p-4 sm:p-5">
           <div>
             <h2
               id="flejexa-guest-welcome-title"
@@ -507,7 +507,7 @@ export function WelcomeBanner() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2">
             <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
               <Wallet className="h-5 w-5 shrink-0 text-gold" />
               <span className="text-sm text-slate-200">
