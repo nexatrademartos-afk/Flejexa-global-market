@@ -1,18 +1,8 @@
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { OfflineImage } from "@/components/OfflineImage";
 import { buildProductWhatsAppMessage, openWhatsApp } from "@/lib/whatsapp";
-import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  Heart,
-  ShoppingCart,
-  Zap,
-  ChevronDown,
-  ChevronUp,
-  Minus,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { Heart, ShoppingCart, Zap } from "lucide-react";
 import {
   formatStorePrice,
   getStoreImageUrl,
@@ -64,7 +54,6 @@ export function ProductCard({ p, categoryName }: { p: ProductCardItem; categoryN
   const navigate = useNavigate();
   const cart = useLocalList("nexa-cart");
   const wish = useLocalList("nexa-wishlist");
-  const [quantityMenuOpen, setQuantityMenuOpen] = useState(false);
 
   const saved = wish.has(p.id);
   const liveProduct = isStoreProduct(p);
@@ -82,9 +71,8 @@ export function ProductCard({ p, categoryName }: { p: ProductCardItem; categoryN
       : null;
 
   function addToCart() {
-    if (!canAdd) return;
-    cart.add(p.id);
-    setQuantityMenuOpen(true);
+  if (!canAdd) return;
+  cart.add(p.id);
   }
 
   function buyNow() {
@@ -99,24 +87,6 @@ export function ProductCard({ p, categoryName }: { p: ProductCardItem; categoryN
     openWhatsApp(buildProductWhatsAppMessage(p, Math.max(1, quantity || 1)));
   }
 
-  function reduceQuantity() {
-    if (quantity <= 1) {
-      cart.remove(p.id);
-      setQuantityMenuOpen(false);
-      return;
-    }
-    cart.setQuantity(p.id, quantity - 1);
-  }
-
-  function increaseQuantity() {
-    if (canAdd) cart.add(p.id);
-  }
-
-  function removeFromCart() {
-    cart.remove(p.id);
-    setQuantityMenuOpen(false);
-  }
-
   return (
     <article className="group relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
       <Link to="/product/$id" params={{ id: p.id }} className="block" aria-label={`View ${p.name}`}>
@@ -129,13 +99,21 @@ export function ProductCard({ p, categoryName }: { p: ProductCardItem; categoryN
 
           <h3 className="line-clamp-2 min-h-10 font-sans text-sm font-semibold">{p.name}</h3>
 
-          <div className="flex flex-wrap items-baseline gap-2">
-            <p className="text-sm font-semibold text-foreground">{priceLabel}</p>
+          <div className="flex flex-wrap items-baseline gap-1.5">
+  <p className="text-base font-extrabold text-gold">{priceLabel}</p>
 
-            {compareAtPrice && (
-              <p className="text-xs text-muted-foreground line-through">{compareAtPrice}</p>
-            )}
-          </div>
+  {compareAtPrice && (
+    <p className="text-xs text-muted-foreground line-through">
+      {compareAtPrice}
+    </p>
+  )}
+
+  {liveProduct && p.discount_pct !== null && p.discount_pct > 0 && (
+    <span className="rounded-full bg-gold/10 px-1.5 py-0.5 text-[10px] font-bold text-gold">
+      {p.discount_pct}% OFF
+    </span>
+  )}
+</div>
         </div>
       </Link>
 
@@ -150,41 +128,51 @@ export function ProductCard({ p, categoryName }: { p: ProductCardItem; categoryN
       </button>
 
       {liveProduct ? (
-        <div className="mt-auto space-y-2 p-3 pt-0">
-          <div className="flex min-w-0 items-stretch gap-0">
-            <button
-              type="button"
-              onClick={addToCart}
-              disabled={!canAdd}
-              className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1 rounded-l-lg border border-r-0 border-gold/70 bg-background px-1.5 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label={
-                !canAdd
-                  ? quantity > 0
-                    ? "Maximum available stock added"
-                    : "Out of stock"
-                  : "Add one to cart"
-              }
-            >
-              <ShoppingCart className="h-4 w-4 shrink-0" />
-              <span className="truncate">{quantity > 0 ? "Add More" : "Add to Cart"}</span>
-            </button>
+      <div className="mt-auto grid grid-cols-3 gap-1.5 px-2.5 pb-2.5 pt-1">
+  {/* Buy Now — left */}
+  <button
+    type="button"
+    onClick={buyNow}
+    disabled={!canAdd}
+    aria-label={stock <= 0 ? "Out of stock" : "Buy now"}
+    title="Buy Now"
+    className="grid h-10 place-items-center rounded-lg bg-gold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    <Zap className="h-5 w-5" />
+  </button>
 
-            <button
-              type="button"
-              onClick={() => setQuantityMenuOpen((open) => !open)}
-              aria-label={`Manage cart quantity, currently ${quantity}`}
-              aria-expanded={quantityMenuOpen}
-              className="inline-flex min-h-11 w-[54px] shrink-0 items-center justify-center gap-0.5 rounded-r-lg border border-gold/70 bg-gold/10 px-1 text-sm font-bold text-foreground transition-colors hover:bg-gold/20"
-            >
-              <span>{quantity}</span>
-              {quantityMenuOpen ? (
-                <ChevronUp className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronDown className="h-3.5 w-3.5" />
-              )}
-            </button>
-          </div>
+  {/* Add to Cart — centre */}
+  <button
+    type="button"
+    onClick={addToCart}
+    disabled={!canAdd}
+    aria-label={
+      !canAdd
+        ? stock <= 0
+          ? "Out of stock"
+          : "Maximum available stock added"
+        : quantity > 0
+          ? "Add another to cart"
+          : "Add to cart"
+    }
+    title="Add to Cart"
+    className="grid h-10 place-items-center rounded-lg border border-gold/70 bg-background text-foreground transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    <ShoppingCart className="h-5 w-5" />
+  </button>
 
+  {/* WhatsApp — right */}
+  <button
+    type="button"
+    onClick={orderProductOnWhatsApp}
+    disabled={stock <= 0}
+    aria-label="Order on WhatsApp"
+    title="WhatsApp"
+    className="grid h-10 place-items-center rounded-lg bg-[#25D366] text-white transition-colors hover:bg-[#1DA851] disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    <WhatsAppIcon className="h-5 w-5" />
+  </button>
+</div>
           {quantityMenuOpen && (
             <div className="space-y-3 rounded-lg border border-border bg-background p-3">
               <div className="flex items-center justify-between gap-2">
