@@ -183,6 +183,47 @@ function Shop() {
 
   return (
     <main className="mx-auto min-h-screen max-w-6xl space-y-5 px-4 py-6 sm:py-8">
+            <section
+        aria-label="Product categories"
+        className="-mx-4 min-w-0"
+      >
+        <div className="flex gap-2 overflow-x-auto px-4 pb-2">
+          <Link
+            to="/shop"
+            search={{ page: 1, q }}
+            className={`btn shrink-0 ${
+              !category ? "btn-gold" : "btn-outline"
+            }`}
+          >
+            All Products
+          </Link>
+
+          {categories.map((item) => {
+            const selected =
+              category === item.id ||
+              category === item.slug ||
+              category === item.name;
+
+            return (
+              <Link
+                key={item.id}
+                to="/shop"
+                search={{
+                  category: item.slug,
+                  q,
+                  page: 1,
+                }}
+                className={`btn shrink-0 ${
+                  selected ? "btn-gold" : "btn-outline"
+                }`}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
     <PromotionalBannerCarousel banners={banners} />
       {!q?.trim() && !category && (
         <ShopShowcase
