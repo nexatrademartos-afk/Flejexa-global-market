@@ -14,6 +14,8 @@ import {
   X,
   LogIn,
   UserPlus,
+  Flame,
+  Handshake,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -505,32 +507,44 @@ export function WelcomeBanner() {
 export function MobileTabBar() {
   const { signedIn, sessionReady } = useCustomerSession();
 
-  const items = [
-    { to: "/", label: "Home", icon: Home },
-    { to: "/sign-in", label: "Account", icon: User },
-    { to: "/support", label: "Support", icon: MessageCircle },
-    { to: "/policies", label: "Policies", icon: ShieldCheck },
-  ] as const;
-
   if (!sessionReady || signedIn) return null;
+
+  const items = [
+    { to: "/shop", label: "Shop", icon: ShoppingBag },
+    { to: "/sell", label: "Partner", icon: Handshake },
+    { to: "/#catalogue", label: "FJX Heat", icon: Flame },
+    { to: "/policies", label: "Policies", icon: ShieldCheck },
+    { to: "/sign-in", label: "My FJX", icon: User },
+  ] as const;
 
   return (
     <nav
       aria-label="Guest navigation"
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-gold/20 bg-background md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 items-end border-t border-gold/30 bg-background px-1 pb-1 md:hidden"
     >
-      {items.map(({ to, label, icon: Icon }) => (
-        <Link
-          key={to}
-          to={to}
-          activeOptions={{ exact: to === "/" }}
-          activeProps={{ className: "text-gold" }}
-          className="flex min-h-14 flex-col items-center justify-center gap-0.5 text-[10px] text-muted-foreground"
-        >
-          <Icon className="h-5 w-5" />
-          {label}
-        </Link>
-      ))}
+      {items.map(({ to, label, icon: Icon }) => {
+        const isHeat = label === "FJX Heat";
+
+        return (
+          <Link
+            key={to}
+            to={to}
+            activeOptions={{ exact: to === "/shop" || to === "/sell" }}
+            className={`relative flex min-h-14 flex-col items-center justify-end gap-1 text-[10px] font-medium ${
+              isHeat ? "text-gold" : "text-muted-foreground"
+            }`}
+          >
+            {isHeat ? (
+              <span className="-mt-7 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-gradient-to-br from-yellow-300 via-gold to-amber-700 shadow-[0_0_18px_rgba(212,175,55,0.45)]">
+                <Flame className="h-7 w-7 text-black" />
+              </span>
+            ) : (
+              <Icon className="h-5 w-5" />
+            )}
+            <span>{label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
