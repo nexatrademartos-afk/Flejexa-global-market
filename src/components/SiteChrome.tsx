@@ -631,92 +631,23 @@ export function MobileTabBar() {
 }
 
 export function SiteFooter() {
-  const { signedIn, sessionReady } = useCustomerSession();
-  const { signOut, signingOut } = useCustomerSignOut();
-
   return (
-    <footer className="mt-16 border-t border-gold/30 bg-ink pb-24 text-ink-foreground md:pb-0">
-      <div className="mx-auto max-w-6xl px-4 py-10">
-        <Link
-          to="/"
-          aria-label={`${BRAND.name} home`}
-          className="inline-flex transition-opacity hover:opacity-90"
-        >
-          <img
-            src={BRAND.logoPath}
-            alt={`${BRAND.name} — ${BRAND.tagline}`}
-            className="h-8 w-auto max-w-full object-contain sm:h-9"
-            loading="lazy"
-          />
-        </Link>
+    <footer className="mt-8 border-t border-gold/30 bg-ink pb-24 text-ink-foreground md:pb-0">
+      <div className="mx-auto max-w-6xl px-4 py-4">
+        <div className="gold-rule mb-4" />
 
-        <div className="gold-rule my-6" />
-
-        <nav
-          aria-label="Footer navigation"
-          className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium"
-        >
-          <Link
-            to="/about"
-            className="underline underline-offset-4 hover:text-gold transition-colors"
-          >
-            About Us
-          </Link>
-
-          <Link
-            to="/policies"
-            className="inline-flex items-center gap-1.5 underline underline-offset-4 hover:text-gold transition-colors"
-          >
-            <ShieldCheck className="h-4 w-4 text-gold" />
-            Policy Centre
-          </Link>
-
-          {sessionReady && signedIn ? (
-            <>
-              <Link
-                to="/account"
-                className="underline underline-offset-4 hover:text-gold transition-colors"
-              >
-                My dashboard
-              </Link>
-              <button
-                type="button"
-                onClick={() => void signOut()}
-                disabled={signingOut}
-                className="underline underline-offset-4 hover:text-gold transition-colors disabled:opacity-60"
-              >
-                {signingOut ? "Signing out..." : "Sign out"}
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/sign-in"
-                className="underline underline-offset-4 hover:text-gold transition-colors"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/sign-up"
-                className="underline underline-offset-4 hover:text-gold transition-colors"
-              >
-                Create account
-              </Link>
-            </>
-          )}
-        </nav>
-
-        <p className="text-xs text-slate-400">
-          Preview build · storefront UI only. Payments and order placement are
-          not live yet.
-        </p>
-
-        <div className="mt-6 border-t border-gold/20 pt-4 text-center">
-          <p className="text-sm font-semibold tracking-wide text-slate-300">
-            Powered by <span className="text-gold">{BRAND.poweredBy}</span>
+        <div className="border-t border-gold/20 pt-4 text-center">
+          <p className="flex items-baseline justify-center gap-1.5">
+            <span className="text-xs font-medium text-slate-400">
+              Powered by
+            </span>
+            <span className="text-base font-extrabold tracking-wide text-gold">
+              {BRAND.poweredBy}
+            </span>
           </p>
         </div>
       </div>
     </footer>
   );
 }
+
