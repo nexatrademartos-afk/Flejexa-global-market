@@ -1,19 +1,41 @@
+
 /**
- * Dynamic sitemap.xml
+ * Dynamic sitemap endpoint.
  *
- * Built from FEATURE_REGISTRY via isFeaturePubliclyDiscoverable().
- * When you flip indexable / published / status on a feature, this response
- * changes automatically — no second hardcoded URL list.
+ * Reads public pages from the central feature registry and products
+ * from the live public storefront catalogue.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
 import { buildSitemapXml } from "@/lib/seo-sitemap";
+import { fetchStoreCatalogue } from "@/lib/preview-data";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const xml = buildSitemapXml();
+        let productIds: string[] = [];
+
+        try {
+          const catalogue = await fetchStoreCatalogue();
+
+          productIds = catalogue.products
+            .filter(
+              (product) =>
+                typeof product.id === "string" &&
+                product.id.trim().length > 0,
+            )
+            .map((product) => product.id);
+        } catch (error) {
+          // Keep the public-page sitemap available if the catalogue
+          // service is temporarily unavailable.
+          console.error(
+            "Unable to load products for the sitemap:",
+            error,
+          );
+        }
+
+        const xml = buildSitemapXml(productIds);
 
         return new Response(xml, {
           status: 200,
