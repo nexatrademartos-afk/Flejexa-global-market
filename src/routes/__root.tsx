@@ -1,5 +1,6 @@
 import { FloatingSupportButtons } from "@/components/FloatingSupportButtons";
 import { BRAND } from "@/lib/brand";
+import { buildHomeJsonLd } from "@/lib/seo-jsonld";
 import { OfflineStatusBanner } from "@/components/OfflineStatusBanner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -136,6 +137,9 @@ export const Route =
   name: "google-site-verification",
   content: "BrFKEnazAF67NNLjqZrSGuDn7xu9lgDGamgqxnsrnxc",
 },
+       {
+  "script:ld+json": buildHomeJsonLd(),
+}, 
         { charSet: "utf-8" },
         {
           name: "viewport",
