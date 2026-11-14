@@ -196,7 +196,7 @@ function ShowcaseSlide({
         <p className="mt-1 text-sm text-muted-foreground">{collection.subtitle}</p>
       </div>
 
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-2 md:grid-cols-4">
         {collection.products.map((product) => (
           <li key={`${collection.key}-${product.id}`} className="min-w-0">
             <ProductCard
