@@ -1,3 +1,4 @@
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BRAND, brandPageTitle } from "@/lib/brand";
 import { useEffect, useMemo, useState } from "react";
@@ -17,6 +18,7 @@ type Search = {
   q?: string;
   page: number;
 };
+
 import { getFeatureRobotsMeta } from "@/lib/feature-seo";
 import { PromotionalBannerCarousel } from "@/components/PromotionalBannerCarousel";
 
@@ -37,7 +39,6 @@ export const Route = createFileRoute("/shop")({
     };
   },
 
-  
   head: () => ({
     meta: [
       { title: brandPageTitle("Shop") },
@@ -98,7 +99,6 @@ export const Route = createFileRoute("/shop")({
       },
     ],
   }),
-  
 
   component: Shop,
 });
@@ -124,9 +124,9 @@ function Shop() {
 
         if (!active) return;
 
-       setProducts(catalogue.products);
-       setCategories(catalogue.categories);
-       setBanners(catalogue.banners);
+        setProducts(catalogue.products);
+        setCategories(catalogue.categories);
+        setBanners(catalogue.banners);
       } catch (error) {
         console.error("Unable to load the live shop catalogue:", error);
 
@@ -183,7 +183,8 @@ function Shop() {
 
   return (
     <main className="mx-auto min-h-screen max-w-6xl space-y-5 px-4 py-6 sm:py-8">
-            <section
+      {/* Single category browsing row — keep above promotional banners */}
+      <section
         aria-label="Product categories"
         className="-mx-4 min-w-0"
       >
@@ -224,7 +225,8 @@ function Shop() {
         </div>
       </section>
 
-    <PromotionalBannerCarousel banners={banners} />
+      <PromotionalBannerCarousel banners={banners} />
+
       {!q?.trim() && !category && (
         <ShopShowcase
           products={products}
@@ -234,71 +236,7 @@ function Shop() {
         />
       )}
 
-      <form action="/shop" method="get" role="search" className="flex gap-2">
-        <label className="min-w-0 flex-1">
-          <span className="sr-only">Search products</span>
-          <input
-            type="search"
-            name="q"
-            defaultValue={q ?? ""}
-            placeholder="Search products or categories..."
-            className="field w-full"
-          />
-        </label>
-
-        {category && (
-          <input type="hidden" name="category" value={category} />
-        )}
-
-        <input type="hidden" name="page" value="1" />
-
-        <button type="submit" className="btn btn-gold">
-          Search
-        </button>
-      </form>
-
-      <section aria-label="Product categories" className="space-y-3">
-        <h2 className="text-sm font-semibold text-muted-foreground">
-          Browse categories
-        </h2>
-
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2">
-          <Link
-            to="/shop"
-            search={{ page: 1, q }}
-            className={`btn shrink-0 ${
-              !category ? "btn-gold" : "btn-outline"
-            }`}
-          >
-            All products
-          </Link>
-
-          {categories.map((item) => {
-            const selected =
-              category === item.id ||
-              category === item.slug ||
-              category === item.name;
-
-            return (
-              <Link
-                key={item.id}
-                to="/shop"
-                search={{
-                  category: item.slug,
-                  q,
-                  page: 1,
-                }}
-                className={`btn shrink-0 ${
-                  selected ? "btn-gold" : "btn-outline"
-                }`}
-              >
-                {item.name}
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
+      {/* Main product catalogue */}
       {loading ? (
         <section aria-live="polite" className="space-y-3">
           <p className="text-sm text-muted-foreground">
