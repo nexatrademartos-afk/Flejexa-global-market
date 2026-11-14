@@ -348,6 +348,6 @@ function Shop() {
           )}
         </>
       )}
-    </dev>
+    </main>
   );
 }
