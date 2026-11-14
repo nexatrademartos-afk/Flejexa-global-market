@@ -5,12 +5,10 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Heart,
-  Home,
-  ShoppingBag,
-  User,
-  ShieldCheck,
-  Menu,
+    Menu,
   MessageCircle,
+  Search,
+  ShoppingCart,
   X,
   LogIn,
   UserPlus,
@@ -124,8 +122,14 @@ export function Logo() {
 }
 
 export function SiteHeader() {
-  const cart = useLocalList("nexa-cart");
+    const cart = useLocalList("nexa-cart");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const cartCount = Object.values(cart.quantities).reduce(
+    (total, quantity) => total + quantity,
+    0,
+  );
   const { signedIn, sessionReady } = useCustomerSession();
   const { signOut, signingOut } = useCustomerSignOut();
 
@@ -241,24 +245,58 @@ export function SiteHeader() {
             )}
           </div>
 
-          <button
+                    <button
             type="button"
-            onClick={() => setMenuOpen((current) => !current)}
-            aria-label={
-              menuOpen ? "Close navigation menu" : "Open navigation menu"
-            }
-            aria-expanded={menuOpen}
-            aria-controls="nexa-mobile-menu"
-            className="grid h-10 w-10 place-items-center rounded-full border border-gold/30 transition hover:bg-secondary lg:hidden"
+            onClick={() => setSearchOpen((current) => !current)}
+            aria-label={searchOpen ? "Close search" : "Open search"}
+            aria-expanded={searchOpen}
+            className="relative grid h-10 w-10 place-items-center rounded-full transition hover:bg-secondary"
           >
-            {menuOpen ? (
-              <X className="h-5 w-5 text-gold" />
+            {searchOpen ? (
+              <X className="h-5 w-5" />
             ) : (
-              <Menu className="h-5 w-5" />
+              <Search className="h-5 w-5" />
             )}
           </button>
+
+          <Link
+            to="/cart"
+            aria-label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ""}`}
+            title="Shopping cart"
+            className="relative grid h-10 w-10 place-items-center rounded-full transition hover:bg-secondary"
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {cartCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-gold-foreground">
+                {cartCount}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
+
+            {searchOpen && (
+        <form
+          action="/shop"
+          method="get"
+          role="search"
+          className="border-t border-gold/20 bg-background/98 px-3 py-3 sm:px-6"
+        >
+          <div className="mx-auto flex max-w-6xl items-center gap-2">
+            <input
+              type="search"
+              name="q"
+              autoFocus
+              placeholder="Search products, brands and categories..."
+              aria-label="Search products"
+              className="field min-w-0 flex-1"
+            />
+            <button type="submit" className="btn btn-gold">
+              Search
+            </button>
+          </div>
+        </form>
+      )}
 
       {menuOpen && (
         <div
