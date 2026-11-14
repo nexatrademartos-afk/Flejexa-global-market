@@ -5,18 +5,22 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Heart,
-    Menu,
+  Home,
+  Menu,
   MessageCircle,
   Search,
+  ShieldCheck,
+  ShoppingBag,
   ShoppingCart,
+  User,
   X,
   LogIn,
   UserPlus,
   Flame,
   Handshake,
   Gift,
- Wallet,
- Briefcase,
+  Wallet,
+  Briefcase,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -199,20 +203,6 @@ export function SiteHeader() {
             <Heart className="h-5 w-5" />
           </Link>
 
-          <Link
-            to="/cart"
-            aria-label="Cart"
-            title="Cart"
-            className="relative grid h-10 w-10 place-items-center rounded-full transition hover:bg-secondary"
-          >
-            <ShoppingBag className="h-5 w-5" />
-            {cart.ids.length > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-gold-foreground">
-                {cart.ids.length}
-              </span>
-            )}
-          </Link>
-
           <div className="hidden sm:block">
             <WorkspaceSwitcher />
           </div>
@@ -273,6 +263,22 @@ export function SiteHeader() {
             )}
           </Link>
         </div>
+                  <button
+            type="button"
+            onClick={() => setMenuOpen((current) => !current)}
+            aria-label={
+              menuOpen ? "Close navigation menu" : "Open navigation menu"
+            }
+            aria-expanded={menuOpen}
+            aria-controls="nexa-mobile-menu"
+            className="grid h-10 w-10 place-items-center rounded-full border border-gold/30 transition hover:bg-secondary lg:hidden"
+          >
+            {menuOpen ? (
+              <X className="h-5 w-5 text-gold" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </button>
       </div>
 
             {searchOpen && (
