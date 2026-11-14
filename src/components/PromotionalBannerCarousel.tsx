@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { OfflineImage } from "@/components/OfflineImage";
