@@ -318,7 +318,7 @@ function Shop() {
 
           <section
             aria-label="Available products"
-            className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"
+           className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4"
           >
             {paginated.items.map((product) => {
               const productCategory = categories.find(
