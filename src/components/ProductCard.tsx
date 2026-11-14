@@ -36,7 +36,7 @@ export function ProductTile({
 
   return (
     <div
-      className={`relative grid aspect-square place-items-center overflow-hidden bg-ink text-ink-foreground ${className}`}
+      className={`relative grid aspect-square w-full place-items-center overflow-hidden bg-ink text-ink-foreground ${className}`}
     >
       {image ? (
         <OfflineImage
@@ -112,7 +112,7 @@ export function ProductCard({
   }
 
   return (
-    <article className="group relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
+    <article className="group relative flex min-w-0 flex-col overflow-hidden">
       <Link
         to="/product/$id"
         params={{ id: p.id }}
@@ -121,7 +121,7 @@ export function ProductCard({
       >
         <ProductTile p={p} />
 
-        <div className="space-y-1 p-3">
+        <div className="space-y-1 p-2">
           <p className="truncate text-[11px] uppercase tracking-wide text-muted-foreground">
             {categoryLabel}
           </p>
@@ -169,20 +169,20 @@ export function ProductCard({
       </button>
 
       {liveProduct ? (
-        <div className="mt-auto grid grid-cols-3 gap-1.5 px-2.5 pb-2.5 pt-1">
-          {/* Buy Now — left */}
+        <div className="mt-auto grid grid-cols-3 gap-1 px-1.5 pb-1.5 pt-1">
+          {/* Buy Now */}
           <button
             type="button"
             onClick={buyNow}
             disabled={!canAdd}
             aria-label={stock <= 0 ? "Out of stock" : "Buy now"}
             title="Buy Now"
-            className="grid h-10 place-items-center rounded-lg bg-gold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="grid h-9 place-items-center rounded-md bg-gold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Zap className="h-5 w-5" />
           </button>
 
-          {/* Add to Cart — centre */}
+          {/* Add to Cart */}
           <button
             type="button"
             onClick={addToCart}
@@ -197,25 +197,25 @@ export function ProductCard({
                   : "Add to cart"
             }
             title="Add to Cart"
-            className="grid h-10 place-items-center rounded-lg border border-gold/70 bg-background text-foreground transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-50"
+            className="grid h-9 place-items-center rounded-md border border-gold/70 bg-background text-foreground transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ShoppingCart className="h-5 w-5" />
           </button>
 
-          {/* WhatsApp — right */}
+          {/* WhatsApp */}
           <button
             type="button"
             onClick={orderProductOnWhatsApp}
             disabled={stock <= 0}
             aria-label="Order on WhatsApp"
             title="WhatsApp"
-            className="grid h-10 place-items-center rounded-lg bg-[#25D366] text-white transition-colors hover:bg-[#1DA851] disabled:cursor-not-allowed disabled:opacity-50"
+            className="grid h-9 place-items-center rounded-md bg-[#25D366] text-white transition-colors hover:bg-[#1DA851] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <WhatsAppIcon className="h-5 w-5" />
           </button>
         </div>
       ) : (
-        <p className="px-3 pb-3 text-xs text-muted-foreground">
+        <p className="px-2 pb-2 text-xs text-muted-foreground">
           Preview item — not available to purchase.
         </p>
       )}
