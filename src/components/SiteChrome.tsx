@@ -1,7 +1,7 @@
 
 import { BRAND } from "@/lib/brand";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Heart,
@@ -572,8 +572,7 @@ export function WelcomeBanner() {
       </section>
     </div>
   );
-            }
-
+ }
 
 export function MobileTabBar() {
   const { signedIn, sessionReady } = useCustomerSession();
