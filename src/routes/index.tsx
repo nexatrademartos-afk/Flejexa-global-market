@@ -380,19 +380,6 @@ useEffect(() => {
         )}
       </div>
     )}
-
-    <div className="mt-5 flex flex-wrap gap-3">
-      <a href="#catalogue" className="btn btn-gold">
-        <ShoppingBag className="h-4 w-4" />
-        Explore products
-      </a>
-
-      {sessionReady && !signedIn && (
-        <Link to="/sign-up" className="btn btn-on-ink">
-          Create account
-        </Link>
-      )}
-    </div>
   </div>
 </section>
       
