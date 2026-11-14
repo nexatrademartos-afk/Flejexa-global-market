@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import { Pause, Play } from "lucide-react";
 import { OfflineImage } from "@/components/OfflineImage";
 import { supabase } from "@/integrations/supabase/client";
 import type { StoreBanner } from "@/lib/preview-data";
@@ -30,19 +31,41 @@ function getPublicImageUrl(path: string | null | undefined) {
 export function PromotionalBannerCarousel({ banners }: Props) {
   const [activeBanner, setActiveBanner] = useState(0);
   const [failedImages, setFailedImages] = useState<string[]>([]);
+  const [isPaused, setIsPaused] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
+    const mediaQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+
+    const updatePreference = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+
+    updatePreference();
+    mediaQuery.addEventListener("change", updatePreference);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updatePreference);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (banners.length <= 1 || isPaused || prefersReducedMotion) {
+      return;
+    }
 
     const timer = window.setInterval(() => {
       setActiveBanner((current) => (current + 1) % banners.length);
     }, 5000);
 
     return () => window.clearInterval(timer);
-  }, [banners.length]);
+  }, [banners.length, isPaused, prefersReducedMotion]);
 
   useEffect(() => {
     setActiveBanner(0);
+    setFailedImages([]);
   }, [banners.length]);
 
   function markImageFailed(key: string) {
@@ -54,7 +77,10 @@ export function PromotionalBannerCarousel({ banners }: Props) {
   if (banners.length === 0) return null;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-gold/40 bg-black shadow-[0_0_24px_rgba(212,175,55,0.12)]">
+    <div
+      className="relative overflow-hidden rounded-2xl border border-gold/40 bg-black shadow-[0_0_24px_rgba(212,175,55,0.12)]"
+      aria-label="Store promotions"
+    >
       {banners.map((banner, index) => {
         const imageUrl = getPublicImageUrl(banner.image_url);
         const imageFailed = failedImages.includes(`banner-${banner.id}`);
@@ -99,24 +125,64 @@ export function PromotionalBannerCarousel({ banners }: Props) {
       })}
 
       {banners.length > 1 && (
-        <div className="absolute bottom-3 right-4 z-10 flex items-center gap-2">
-          {banners.map((banner, index) => (
+        <>
+          <div className="absolute bottom-3 left-4 z-10">
             <button
-              key={banner.id}
               type="button"
-              onClick={() => setActiveBanner(index)}
-              aria-label={`Show promotion ${index + 1}`}
-              aria-current={index === activeBanner ? "true" : undefined}
-              className={`h-2.5 rounded-full transition-all ${
-                index === activeBanner
-                  ? "w-7 bg-gold"
-                  : "w-2.5 bg-white/60 hover:bg-white"
-              }`}
-            />
-          ))}
-        </div>
+              onClick={() => setIsPaused((current) => !current)}
+              disabled={prefersReducedMotion}
+              aria-label={
+                prefersReducedMotion
+                  ? "Automatic promotion rotation is disabled by your reduced-motion setting"
+                  : isPaused
+                    ? "Resume automatic promotions"
+                    : "Pause automatic promotions"
+              }
+              title={
+                prefersReducedMotion
+                  ? "Automatic rotation disabled by reduced-motion setting"
+                  : isPaused
+                    ? "Play promotions"
+                    : "Pause promotions"
+              }
+              className="flex h-8 items-center gap-1.5 rounded-full border border-white/30 bg-black/70 px-3 text-xs font-semibold text-white backdrop-blur transition hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {prefersReducedMotion ? (
+                <Pause className="h-3.5 w-3.5" />
+              ) : isPaused ? (
+                <Play className="h-3.5 w-3.5" />
+              ) : (
+                <Pause className="h-3.5 w-3.5" />
+              )}
+              {prefersReducedMotion
+                ? "Autoplay off"
+                : isPaused
+                  ? "Play"
+                  : "Pause"}
+            </button>
+          </div>
+
+          <div
+            className="absolute bottom-3 right-4 z-10 flex items-center gap-2"
+            aria-label="Choose promotion"
+          >
+            {banners.map((banner, index) => (
+              <button
+                key={banner.id}
+                type="button"
+                onClick={() => setActiveBanner(index)}
+                aria-label={`Show promotion ${index + 1}`}
+                aria-current={index === activeBanner ? "true" : undefined}
+                className={`h-2.5 rounded-full transition-all ${
+                  index === activeBanner
+                    ? "w-7 bg-gold"
+                    : "w-2.5 bg-white/60 hover:bg-white"
+                }`}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
-                                    }
-          
+}
