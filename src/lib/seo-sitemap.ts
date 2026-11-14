@@ -79,3 +79,4 @@ export function buildSitemapXml(lastmod?: string): string {
 export function sitemapBaseUrl(): string {
   return getSiteUrl();
     }
+
