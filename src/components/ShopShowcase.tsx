@@ -185,12 +185,12 @@ function ShowcaseSlide({
   categories: StoreCategory[];
 }) {
   return (
-    <div
-      role="group"
-      aria-roledescription="slide"
-      aria-label={`${collection.title}, ${index + 1} of ${total}`}
-      className="surface rounded-xl p-4 sm:p-5"
-    >
+<div
+  role="group"
+  aria-roledescription="slide"
+  aria-label={`${collection.title}, ${index + 1} of ${total}`}
+  className="w-full min-w-0"
+>
       <div className="mb-4">
         <h2 className="text-xl font-bold">{collection.title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{collection.subtitle}</p>
