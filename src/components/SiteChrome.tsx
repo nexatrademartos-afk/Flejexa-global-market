@@ -16,6 +16,9 @@ import {
   UserPlus,
   Flame,
   Handshake,
+  Gift,
+ Wallet,
+ Briefcase,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -394,10 +397,10 @@ export function SiteHeader() {
   );
 }
 
+
 /**
- * First-visit welcome banner.
- * Guests can dismiss it on this device.
- * Authenticated customers do not see the guest welcome actions.
+ * Temporary guest welcome pop-up.
+ * Appears once per browser session for visitors who are not signed in.
  */
 export function WelcomeBanner() {
   const { signedIn, sessionReady } = useCustomerSession();
@@ -410,99 +413,167 @@ export function WelcomeBanner() {
     }
 
     try {
-      setVisible(
-        localStorage.getItem("nexa-welcome-dismissed") !== "true",
-      );
+      if (sessionStorage.getItem("flejexa-guest-welcome-seen") === "true") {
+        setVisible(false);
+        return;
+      }
     } catch {
-      setVisible(true);
+      // Continue if session storage is unavailable.
     }
+
+    setVisible(true);
   }, [signedIn, sessionReady]);
 
-  function dismiss() {
+  const dismiss = useCallback(() => {
     try {
-      localStorage.setItem("nexa-welcome-dismissed", "true");
+      sessionStorage.setItem("flejexa-guest-welcome-seen", "true");
     } catch {
-      // The banner can still be dismissed when storage is unavailable.
+      // The pop-up can still be dismissed without storage.
     }
+
     setVisible(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    const timer = window.setTimeout(dismiss, 7000);
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") dismiss();
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [visible, dismiss]);
 
   if (!sessionReady || signedIn || !visible) return null;
 
   return (
-    <section
-      aria-labelledby="nexa-welcome-title"
-      className="border-b border-gold/30 bg-gradient-to-r from-gold-soft via-background to-gold-soft"
-    >
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 sm:py-6">
-        <div className="flex items-start justify-between gap-3">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+      <button
+        type="button"
+        aria-label="Continue browsing as a guest"
+        onClick={dismiss}
+        className="absolute inset-0 h-full w-full cursor-default"
+      />
+
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="flejexa-guest-welcome-title"
+        className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-gold/50 bg-[#101010] text-white shadow-[0_0_35px_rgba(212,175,55,0.2)]"
+      >
+        <div className="flex items-center justify-between border-b border-gold/20 px-5 py-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
               Welcome to {BRAND.name}
             </p>
-            <h2
-              id="nexa-welcome-title"
-              className="mt-2 text-xl font-bold sm:text-2xl"
-            >
-              Your marketplace. Your choice.
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Discover products and explore {BRAND.shortName} before creating an account.
-              You can browse freely and sign in whenever you need your account.
+            <p className="mt-1 text-xs text-slate-400">
+              Powered by {BRAND.poweredBy}
             </p>
           </div>
 
           <button
             type="button"
             onClick={dismiss}
-            aria-label="Dismiss welcome message"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border hover:bg-secondary"
+            aria-label="Close welcome pop-up"
+            className="grid h-9 w-9 place-items-center rounded-full border border-white/20 text-slate-300 transition hover:bg-white/10 hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={dismiss} className="btn btn-gold">
-            Continue browsing
-          </button>
+        <div className="space-y-4 p-5 sm:p-6">
+          <div>
+            <h2
+              id="flejexa-guest-welcome-title"
+              className="text-2xl font-extrabold leading-tight text-gold sm:text-3xl"
+            >
+              Become Part of FleJexa.
+            </h2>
 
-          <Link
-            to="/sign-in"
-            onClick={dismiss}
-            className="btn btn-outline"
-          >
-            <LogIn className="h-4 w-4" />
-            Log in
-          </Link>
+            <p className="mt-2 text-sm font-bold tracking-wide text-white">
+              Shop More. Save More. Get Rewarded.
+            </p>
 
-          <Link
-            to="/sign-up"
-            onClick={dismiss}
-            className="btn btn-outline"
-          >
-            <UserPlus className="h-4 w-4" />
-            Create account
-          </Link>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              Create your free account and discover more ways to shop,
+              earn rewards, explore opportunities and grow with our community.
+            </p>
+          </div>
 
-          <button
-            type="button"
-            disabled
-            title="Google sign-in is not available yet"
-            className="btn btn-outline cursor-not-allowed opacity-60"
-          >
-            Continue with Google
-            <span className="text-xs">(Coming soon)</span>
-          </button>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+              <Wallet className="h-5 w-5 shrink-0 text-gold" />
+              <span className="text-sm text-slate-200">
+                Wallet access and eligible bonuses
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+              <Gift className="h-5 w-5 shrink-0 text-gold" />
+              <span className="text-sm text-slate-200">
+                Rewards, special offers and gifts
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+              <Handshake className="h-5 w-5 shrink-0 text-gold" />
+              <span className="text-sm text-slate-200">
+                Partnership opportunities
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+              <Briefcase className="h-5 w-5 shrink-0 text-gold" />
+              <span className="text-sm text-slate-200">
+                Team and career opportunities
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-1">
+            <Link
+              to="/sign-up"
+              onClick={dismiss}
+              className="btn btn-gold flex w-full justify-center"
+            >
+              <UserPlus className="h-4 w-4" />
+              Create Your Account
+            </Link>
+
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-xs text-slate-400">
+                Already a member?
+              </span>
+              <Link
+                to="/sign-in"
+                onClick={dismiss}
+                className="text-sm font-semibold text-gold hover:underline"
+              >
+                Log in
+              </Link>
+            </div>
+
+            <button
+              type="button"
+              onClick={dismiss}
+              className="w-full py-2 text-xs font-medium text-slate-400 transition hover:text-white"
+            >
+              Continue exploring as a guest
+            </button>
+          </div>
         </div>
-
-        <p className="text-xs text-muted-foreground">
-          Preview storefront: checkout and payments are not live yet.
-        </p>
-      </div>
-    </section>
+      </section>
+    </div>
   );
-}
+            }
+
 
 export function MobileTabBar() {
   const { signedIn, sessionReady } = useCustomerSession();
