@@ -1,11 +1,12 @@
 
 /**
- * Sitemap built only from the central feature registry.
+ * Central FleJexa sitemap generator.
  *
- * Rules:
- * - A route appears only when it is publicly discoverable.
- * - The root route "/" is excluded because it redirects to "/shop".
- * - Private, unregistered and non-indexable routes never appear.
+ * Includes:
+ * - Public, published and indexable feature routes.
+ * - Product URLs supplied by the live public catalogue.
+ *
+ * Private routes and the root redirect are never included.
  */
 
 import { FEATURE_REGISTRY } from "@/lib/feature-registry";
@@ -30,8 +31,7 @@ function escapeXml(value: string): string {
 }
 
 /**
- * Returns every public, published, indexable feature route.
- * The root route is omitted because it redirects to the shop.
+ * Returns every public, published and indexable feature route.
  */
 export function getDiscoverableSitemapPaths(): string[] {
   return FEATURE_REGISTRY
@@ -44,39 +44,60 @@ export function getDiscoverableSitemapPaths(): string[] {
 }
 
 /**
- * Full sitemap XML document. Safe to serve as application/xml.
+ * Generates XML from the central feature registry and live product IDs.
  */
-export function buildSitemapXml(lastmod?: string): string {
+export function buildSitemapXml(
+  productIds: readonly string[] = [],
+  lastmod?: string,
+): string {
   const day = lastmod ?? new Date().toISOString().slice(0, 10);
 
-  const paths = getDiscoverableSitemapPaths();
+  const featureUrls = getDiscoverableSitemapPaths().map((path) => {
+    const loc = escapeXml(absoluteUrl(path));
+    const priority = PRIORITY_BY_ROUTE[path] ?? "0.5";
 
-  const urls = paths
-    .map((path) => {
-      const loc = escapeXml(absoluteUrl(path));
-      const priority = PRIORITY_BY_ROUTE[path] ?? "0.5";
+    return [
+      "  <url>",
+      `    <loc>${loc}</loc>`,
+      `    <lastmod>${day}</lastmod>`,
+      `    <priority>${priority}</priority>`,
+      "  </url>",
+    ].join("\n");
+  });
 
-      return [
-        "  <url>",
-        `    <loc>${loc}</loc>`,
-        `    <lastmod>${day}</lastmod>`,
-        `    <priority>${priority}</priority>`,
-        "  </url>",
-      ].join("\n");
-    })
-    .join("\n");
+  const uniqueProductIds = [
+    ...new Set(
+      productIds.filter(
+        (id) => typeof id === "string" && id.trim().length > 0,
+      ),
+    ),
+  ];
+
+  const productUrls = uniqueProductIds.map((id) => {
+    const loc = escapeXml(
+      absoluteUrl(`/product/${encodeURIComponent(id)}`),
+    );
+
+    return [
+      "  <url>",
+      `    <loc>${loc}</loc>`,
+      "    <priority>0.7</priority>",
+      "  </url>",
+    ].join("\n");
+  });
+
+  const urls = [...featureUrls, ...productUrls].join("\n");
 
   return [
-    `<?xml version="1.0" encoding="UTF-8"?>`,
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     urls,
-    `</urlset>`,
+    "</urlset>",
     "",
   ].join("\n");
 }
 
-/** Base origin currently used for sitemap loc values. */
+/** Base origin used by sitemap URLs. */
 export function sitemapBaseUrl(): string {
   return getSiteUrl();
-    }
-
+}
