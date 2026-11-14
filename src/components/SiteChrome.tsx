@@ -675,23 +675,77 @@ export function MobileTabBar() {
 }
 
 export function SiteFooter() {
+  const currentYear = new Date().getFullYear();
+
+  const socialLinks = [
+    {
+      name: "WhatsApp",
+      mark: <MessageCircle className="h-5 w-5" />,
+      url: BRAND.contact.whatsappUrl,
+    },
+    { name: "Facebook", mark: "f", url: null },
+    { name: "Instagram", mark: "◎", url: null },
+    { name: "TikTok", mark: "♪", url: null },
+    { name: "YouTube", mark: "▶", url: null },
+  ];
+
   return (
     <footer className="mt-8 border-t border-gold/30 bg-ink pb-24 text-ink-foreground md:pb-0">
-      <div className="mx-auto max-w-6xl px-4 py-4">
-        <div className="gold-rule mb-4" />
+      <div className="mx-auto max-w-6xl px-4 py-6">
+        <div className="gold-rule mb-5" />
 
-        <div className="border-t border-gold/20 pt-4 text-center">
-          <p className="flex items-baseline justify-center gap-1.5">
-            <span className="text-xs font-medium text-slate-400">
-              Powered by
-            </span>
-            <span className="text-base font-extrabold tracking-wide text-gold">
-              {BRAND.poweredBy}
-            </span>
-          </p>
+        <div className="flex flex-col items-center gap-5 text-center">
+          <div>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+              Connect with FleJexa
+            </p>
+
+            <div className="flex items-center justify-center gap-3">
+              {socialLinks.map((social) =>
+                social.url ? (
+                  <a
+                    key={social.name}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit FleJexa on ${social.name}`}
+                    title={social.name}
+                    className="grid h-10 w-10 place-items-center rounded-full border border-gold/30 bg-white/5 text-gold transition hover:border-gold hover:bg-gold hover:text-black"
+                  >
+                    {social.mark}
+                  </a>
+                ) : (
+                  <span
+                    key={social.name}
+                    aria-label={`${social.name} link will be configured in the dashboard`}
+                    title={`${social.name} — coming soon`}
+                    className="grid h-10 w-10 cursor-default place-items-center rounded-full border border-gold/20 bg-white/5 text-lg font-bold text-slate-500"
+                  >
+                    {social.mark}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+
+          <div className="w-full border-t border-gold/20 pt-4">
+            <p className="text-xs font-medium text-slate-400">
+              © {currentYear} {BRAND.name}. All rights reserved.
+            </p>
+          </div>
+
+          <div className="w-full border-t border-gold/20 pt-4">
+            <p className="flex items-baseline justify-center gap-1.5">
+              <span className="text-xs font-medium text-slate-400">
+                Powered by
+              </span>
+              <span className="text-base font-extrabold tracking-wide text-gold">
+                {BRAND.poweredBy}
+              </span>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
   );
 }
-
