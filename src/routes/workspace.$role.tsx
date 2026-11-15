@@ -192,7 +192,7 @@ export const Route = createFileRoute("/workspace/$role")({
       return {
         meta: [
           { title: "Workspace not found — NEXA" },
-          { name: "robots", content: "noindex" },
+          { name: "robots", content: "noindex, nofollow" },
         ],
       };
     }
