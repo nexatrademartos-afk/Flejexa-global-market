@@ -4,7 +4,7 @@
  *
  * Includes:
  * - Public, published and indexable feature routes.
- * - Product URLs supplied by the live public catalogue.
+ * - Every eligible live product supplied by the sitemap data query.
  *
  * Private routes and the root redirect are never included.
  */
@@ -12,6 +12,7 @@
 import { FEATURE_REGISTRY } from "@/lib/feature-registry";
 import { isFeaturePubliclyDiscoverable } from "@/lib/feature-status";
 import { absoluteUrl, getSiteUrl } from "@/lib/site";
+import type { SitemapProduct } from "@/lib/preview-data";
 
 const PRIORITY_BY_ROUTE: Record<string, string> = {
   "/shop": "1.0",
@@ -30,6 +31,18 @@ function escapeXml(value: string): string {
     .replace(/'/g, "&apos;");
 }
 
+function formatLastmod(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toISOString().slice(0, 10);
+}
+
 /**
  * Returns every public, published and indexable feature route.
  */
@@ -44,13 +57,14 @@ export function getDiscoverableSitemapPaths(): string[] {
 }
 
 /**
- * Generates XML from the central feature registry and live product IDs.
+ * Generates XML from the central feature registry and live product records.
  */
 export function buildSitemapXml(
-  productIds: readonly string[] = [],
+  products: readonly SitemapProduct[] = [],
   lastmod?: string,
 ): string {
-  const day = lastmod ?? new Date().toISOString().slice(0, 10);
+  const defaultLastmod =
+    formatLastmod(lastmod) ?? new Date().toISOString().slice(0, 10);
 
   const featureUrls = getDiscoverableSitemapPaths().map((path) => {
     const loc = escapeXml(absoluteUrl(path));
@@ -59,28 +73,36 @@ export function buildSitemapXml(
     return [
       "  <url>",
       `    <loc>${loc}</loc>`,
-      `    <lastmod>${day}</lastmod>`,
+      `    <lastmod>${defaultLastmod}</lastmod>`,
       `    <priority>${priority}</priority>`,
       "  </url>",
     ].join("\n");
   });
 
-  const uniqueProductIds = [
-    ...new Set(
-      productIds.filter(
-        (id) => typeof id === "string" && id.trim().length > 0,
-      ),
-    ),
-  ];
+  const uniqueProducts = new Map<string, SitemapProduct>();
 
-  const productUrls = uniqueProductIds.map((id) => {
+  for (const product of products) {
+    if (
+      typeof product.id !== "string" ||
+      !product.id.trim()
+    ) {
+      continue;
+    }
+
+    uniqueProducts.set(product.id, product);
+  }
+
+  const productUrls = [...uniqueProducts.values()].map((product) => {
     const loc = escapeXml(
-      absoluteUrl(`/product/${encodeURIComponent(id)}`),
+      absoluteUrl(`/product/${encodeURIComponent(product.id)}`),
     );
+
+    const lastmod = formatLastmod(product.updated_at);
 
     return [
       "  <url>",
       `    <loc>${loc}</loc>`,
+      ...(lastmod ? [`    <lastmod>${lastmod}</lastmod>`] : []),
       "    <priority>0.7</priority>",
       "  </url>",
     ].join("\n");
