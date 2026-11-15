@@ -1,3 +1,4 @@
+import FJXSplashScreen from "@/components/FJXSplashScreen";
 import { FloatingSupportButtons } from "@/components/FloatingSupportButtons";
 import { BRAND } from "@/lib/brand";
 import { buildHomeJsonLd } from "@/lib/seo-jsonld";
@@ -363,7 +364,9 @@ function RootComponent() {
           showCustomerQuickNav || showAdminQuickNav ? "pb-20 md:pb-0" : ""
         }`}
       >
-        <Outlet />
+        <FJXSplashScreen />
+
+<Outlet />
       </main>
 
       <SiteFooter />
