@@ -151,18 +151,20 @@ export const SERVICES: Service[] = [
 ];
 
 export const Route = createFileRoute("/account/")({
-  head: () => ({
-    meta: [
-      { title: "My Account — NEXA GLOBAL MART" },
-      {
-        name: "description",
-        content: "Your NEXA customer account and services.",
-      },
-    ],
-  }),
-  component: CustomerDashboard,
-});
-
+head: () => ({
+  meta: [
+    { title: `${BRAND.shortName} Account — ${BRAND.name}` },
+    {
+      name: "description",
+      content: "Your private FleJexa customer account and personal services.",
+    },
+    {
+      name: "robots",
+      content: "noindex, nofollow",
+    },
+  ],
+}),
+  
 function CustomerDashboard() {
   const [fullName, setFullName] = useState("");
   const [customerCode, setCustomerCode] = useState("");
