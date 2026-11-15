@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AccountPage, accountHead } from "@/components/AccountPage";
@@ -67,9 +68,7 @@ const money = (value: number) =>
 
 const dateLabel = (value: string | null | undefined) => {
   if (!value) return "Date unavailable";
-
   const date = new Date(value);
-
   return Number.isNaN(date.getTime())
     ? "Date unavailable"
     : date.toLocaleDateString("en-ZA", {
@@ -81,9 +80,7 @@ const dateLabel = (value: string | null | undefined) => {
 
 const dateTimeLabel = (value: string | null | undefined) => {
   if (!value) return "Order date unavailable";
-
   const date = new Date(value);
-
   return Number.isNaN(date.getTime())
     ? "Order date unavailable"
     : date.toLocaleString("en-ZA", {
@@ -96,8 +93,6 @@ const dateTimeLabel = (value: string | null | undefined) => {
 };
 
 const statusText = (status: string) => {
-  const value = status.toLowerCase();
-
   const labels: Record<string, string> = {
     pending: "Awaiting approval",
     awaiting_approval: "Awaiting approval",
@@ -110,13 +105,11 @@ const statusText = (status: string) => {
     returned: "Returned",
     refunded: "Refunded",
   };
-
+  const value = status.toLowerCase();
   return labels[value] || value.replace(/_/g, " ");
 };
 
 const paymentStatusText = (status: string) => {
-  const value = (status || "").toLowerCase();
-
   const labels: Record<string, string> = {
     pending: "Payment pending",
     unpaid: "Unpaid",
@@ -127,7 +120,7 @@ const paymentStatusText = (status: string) => {
     refunded: "Refunded",
     partially_refunded: "Partially refunded",
   };
-
+  const value = (status || "").toLowerCase();
   return labels[value] || value.replace(/_/g, " ") || "Not recorded";
 };
 
@@ -137,15 +130,12 @@ const statusStyle = (status: string) => {
   if (value === "delivered") {
     return "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
   }
-
   if (["cancelled", "returned", "refunded"].includes(value)) {
     return "border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400";
   }
-
   if (["pending", "awaiting_approval"].includes(value)) {
     return "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400";
   }
-
   return "border-gold/40 bg-gold/10 text-gold";
 };
 
@@ -162,7 +152,7 @@ const readItems = (value: unknown): OrderItem[] => {
     const price =
       Number(item.price ?? item.unit_price ?? item.unitPrice ?? 0) || 0;
 
-    const lineTotal =
+    const total =
       Number(
         item.line_total ??
           item.lineTotal ??
@@ -171,19 +161,18 @@ const readItems = (value: unknown): OrderItem[] => {
           price * quantity,
       ) || price * quantity;
 
-    const name =
-      item.product_name ??
-      item.productName ??
-      item.name ??
-      item.title ??
-      item.product_title ??
-      "Marketplace product";
-
     return {
-      name: String(name),
+      name: String(
+        item.product_name ??
+          item.productName ??
+          item.name ??
+          item.title ??
+          item.product_title ??
+          "Marketplace product",
+      ),
       quantity,
       price,
-      total: lineTotal,
+      total,
     };
   });
 };
@@ -227,12 +216,10 @@ const matchesFilter = (order: OrderRecord, filter: OrderFilter) => {
 
 const trackingStage = (status: string) => {
   const value = status.toLowerCase();
-
   if (value === "delivered") return 4;
   if (value === "shipped") return 3;
   if (value === "processing") return 2;
   if (value === "confirmed") return 1;
-
   return 0;
 };
 
@@ -247,8 +234,8 @@ function AccountOrdersPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [searchText, setSearchText] = useState("");
-  const [statusFilter, setStatusFilter] = useState<OrderFilter>("all");
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<OrderFilter>("all");
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [expandedDates, setExpandedDates] = useState<Set<string>>(
     () => new Set(),
   );
@@ -273,7 +260,6 @@ function AccountOrdersPage() {
         return;
       }
 
-      // Only retrieve orders belonging to the signed-in customer.
       const { data, error: orderError } = await supabase
         .from("orders")
         .select(
@@ -307,13 +293,7 @@ function AccountOrdersPage() {
     [orders],
   );
 
-  const selected = selectedOrder
-    ? orders.find((order) => order.id === selectedOrder) ?? null
-    : null;
-
-  // Selecting an order also displays that order in the tracking panel.
-  // Otherwise, show the latest active order, or the latest order if all are closed.
-  const currentOrder = selected ?? activeOrders[0] ?? orders[0] ?? null;
+  const currentOrder = activeOrders[0] ?? orders[0] ?? null;
 
   const deliveredCount = orders.filter(
     (order) => order.status.toLowerCase() === "delivered",
@@ -327,11 +307,11 @@ function AccountOrdersPage() {
     isInProgress(order.status),
   ).length;
 
-  const filteredOrders = useMemo(() => {
+  const displayedOrders = useMemo(() => {
     const query = searchText.trim().toLowerCase();
 
     return orders.filter((order) => {
-      if (!matchesFilter(order, statusFilter)) return false;
+      if (!matchesFilter(order, activeView)) return false;
       if (!query) return true;
 
       const itemNames = readItems(order.items)
@@ -348,29 +328,43 @@ function AccountOrdersPage() {
         statusText(order.status).toLowerCase().includes(query)
       );
     });
-  }, [orders, searchText, statusFilter]);
+  }, [orders, searchText, activeView]);
 
   const toggleDate = (orderId: string) => {
     setExpandedDates((previous) => {
       const next = new Set(previous);
-
       if (next.has(orderId)) next.delete(orderId);
       else next.add(orderId);
-
       return next;
     });
   };
 
-  const showHistory = (filter: OrderFilter) => {
-    setStatusFilter(filter);
-    setSearchText("");
-
-    window.setTimeout(() => {
-      document
-        .getElementById("order-history")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
+  const summaryCards: {
+    label: string;
+    value: number;
+    icon: typeof Package;
+    filter: OrderFilter;
+  }[] = [
+    { label: "Total orders", value: orders.length, icon: Package, filter: "all" },
+    {
+      label: "In progress",
+      value: inProgressCount,
+      icon: Clock3,
+      filter: "in_progress",
+    },
+    {
+      label: "Delivered",
+      value: deliveredCount,
+      icon: PackageCheck,
+      filter: "delivered",
+    },
+    {
+      label: "Awaiting approval",
+      value: awaitingCount,
+      icon: CheckCircle2,
+      filter: "awaiting_approval",
+    },
+  ];
 
   if (loading) {
     return (
@@ -407,7 +401,7 @@ function AccountOrdersPage() {
           </div>
         )}
 
-        {/* Current order tracking */}
+        {/* Current order tracking - preserved */}
         <section className="surface rounded-2xl border p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -431,7 +425,6 @@ function AccountOrdersPage() {
                   <p className="font-semibold">
                     Order #{currentOrder.id.slice(0, 8).toUpperCase()}
                   </p>
-
                   <button
                     type="button"
                     onClick={() => toggleDate(currentOrder.id)}
@@ -443,7 +436,6 @@ function AccountOrdersPage() {
                     <Clock3 className="h-4 w-4" />
                   </button>
                 </div>
-
                 <p className="text-xs text-muted-foreground">
                   {readItems(currentOrder.items).length} item line(s) ·{" "}
                   {money(Number(currentOrder.total))}
@@ -451,18 +443,16 @@ function AccountOrdersPage() {
               </div>
 
               {expandedDates.has(currentOrder.id) && (
-                <p className="mt-2 rounded-lg border border-gold/30 bg-gold/5 px-3 py-2 text-xs text-foreground">
+                <p className="mt-2 rounded-lg border border-gold/30 bg-gold/5 px-3 py-2 text-xs">
                   <Clock3 className="mr-1 inline h-3.5 w-3.5 text-gold" />
                   Placed on {dateTimeLabel(currentOrder.created_at)}
                 </p>
               )}
 
-              {/* Five connected order stages */}
               {(() => {
                 const status = currentOrder.status.toLowerCase();
                 const cancelled = isCancelledOrder(status);
                 const stage = trackingStage(status);
-
                 const cancelledLabel =
                   status === "returned"
                     ? "Returned"
@@ -507,7 +497,6 @@ function AccountOrdersPage() {
                                 }`}
                               />
                             )}
-
                             <span
                               className={`relative z-10 grid h-9 w-9 place-items-center rounded-full border-2 ${
                                 isCancelledNode
@@ -519,7 +508,6 @@ function AccountOrdersPage() {
                             >
                               <Icon className="h-4 w-4" />
                             </span>
-
                             <span
                               className={`mt-2 text-center text-[9px] leading-tight sm:text-xs ${
                                 isCancelledNode
@@ -556,16 +544,6 @@ function AccountOrdersPage() {
                               ? "Payment is marked as confirmed. Order fulfilment progress has not yet been confirmed."
                               : "Your order status has been updated."}
               </p>
-
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setSelectedOrder(currentOrder.id)}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-gold hover:underline"
-                >
-                  View order details <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
             </div>
           ) : (
             <div className="mt-5 flex flex-col items-center rounded-xl bg-muted/40 px-4 py-7 text-center">
@@ -585,92 +563,251 @@ function AccountOrdersPage() {
           )}
         </section>
 
-        {/* Clickable order summary */}
+        {/* The selected summary box contains its own order list */}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            {
-              label: "Total orders",
-              value: orders.length,
-              icon: Package,
-              filter: "all" as OrderFilter,
-            },
-            {
-              label: "In progress",
-              value: inProgressCount,
-              icon: Clock3,
-              filter: "in_progress" as OrderFilter,
-            },
-            {
-              label: "Delivered",
-              value: deliveredCount,
-              icon: PackageCheck,
-              filter: "delivered" as OrderFilter,
-            },
-            {
-              label: "Awaiting approval",
-              value: awaitingCount,
-              icon: CheckCircle2,
-              filter: "awaiting_approval" as OrderFilter,
-            },
-          ].map((stat) => {
+          {summaryCards.map((stat) => {
             const Icon = stat.icon;
-            const active = statusFilter === stat.filter;
+            const active = activeView === stat.filter;
 
             return (
-              <button
-                key={stat.label}
-                type="button"
-                onClick={() => showHistory(stat.filter)}
-                aria-label={`Show ${stat.label.toLowerCase()} orders`}
-                aria-pressed={active}
-                className={`surface rounded-2xl border p-4 text-left transition hover:border-gold/60 hover:bg-gold/5 ${
-                  active ? "border-gold bg-gold/5" : ""
+              <div
+                key={stat.filter}
+                className={`surface min-w-0 rounded-2xl border transition ${
+                  active
+                    ? "col-span-2 border-gold bg-gold/5 sm:col-span-4"
+                    : "border-border"
                 }`}
               >
-                <Icon className="h-5 w-5 text-gold" />
-                <p className="mt-3 text-2xl font-bold tabular-nums">
-                  {stat.value}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {stat.label}
-                </p>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveView(stat.filter);
+                    setSearchText("");
+                    setExpandedOrder(null);
+                  }}
+                  aria-expanded={active}
+                  aria-label={`Show ${stat.label.toLowerCase()} orders inside this box`}
+                  className="w-full rounded-2xl p-4 text-left transition hover:bg-gold/5"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-2xl font-bold tabular-nums">
+                        {stat.value}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {stat.label}
+                      </p>
+                    </div>
+                    <Icon className="h-6 w-6 shrink-0 text-gold" />
+                  </div>
+                  {active && (
+                    <p className="mt-2 text-[11px] font-semibold text-gold">
+                      Showing {stat.label.toLowerCase()} below
+                    </p>
+                  )}
+                </button>
+
+                {active && (
+                  <div className="space-y-3 border-t border-gold/20 p-3 sm:p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold">
+                        {stat.label} · {displayedOrders.length} found
+                      </p>
+                      {refreshing && (
+                        <RefreshCw className="h-4 w-4 animate-spin text-gold" />
+                      )}
+                    </div>
+
+                    {displayedOrders.length === 0 ? (
+                      <div className="rounded-xl bg-muted/40 px-4 py-7 text-center">
+                        <Package className="mx-auto h-8 w-8 text-muted-foreground" />
+                        <p className="mt-2 text-sm font-semibold">
+                          No matching orders
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Orders matching this selection will appear here.
+                        </p>
+                      </div>
+                    ) : (
+                      displayedOrders.map((order) => {
+                        const items = readItems(order.items);
+                        const detailsOpen = expandedOrder === order.id;
+                        const dateOpen = expandedDates.has(order.id);
+
+                        return (
+                          <article
+                            key={order.id}
+                            className="rounded-xl border bg-background p-3 sm:p-4"
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-sm font-semibold">
+                                    Order #{order.id.slice(0, 8).toUpperCase()}
+                                  </p>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleDate(order.id)}
+                                    aria-label="Show order placement date and time"
+                                    aria-expanded={dateOpen}
+                                    title="Show order date and time"
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gold/40 bg-gold/10 text-gold hover:bg-gold/20"
+                                  >
+                                    <Clock3 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                                {dateOpen && (
+                                  <p className="mt-2 text-xs text-muted-foreground">
+                                    Placed on {dateTimeLabel(order.created_at)}
+                                  </p>
+                                )}
+                              </div>
+                              <span
+                                className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusStyle(order.status)}`}
+                              >
+                                {statusText(order.status)}
+                              </span>
+                            </div>
+
+                            <div className="mt-3 space-y-2">
+                              {items.slice(0, 2).map((item, index) => (
+                                <div
+                                  key={`${order.id}-${index}`}
+                                  className="flex items-center justify-between gap-3 text-sm"
+                                >
+                                  <span className="min-w-0 truncate text-muted-foreground">
+                                    {item.name} × {item.quantity}
+                                  </span>
+                                  <span className="shrink-0 font-medium">
+                                    {money(item.total)}
+                                  </span>
+                                </div>
+                              ))}
+                              {items.length > 2 && (
+                                <p className="text-xs text-muted-foreground">
+                                  +{items.length - 2} more item line(s)
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t pt-3">
+                              <div>
+                                <p className="text-[11px] text-muted-foreground">
+                                  Order total
+                                </p>
+                                <p className="font-bold">
+                                  {money(Number(order.total))}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedOrder(detailsOpen ? null : order.id)
+                                }
+                                aria-expanded={detailsOpen}
+                                className="inline-flex items-center gap-2 text-sm font-semibold text-gold hover:underline"
+                              >
+                                {detailsOpen ? "Hide details" : "View details"}
+                                <ArrowRight className="h-4 w-4" />
+                              </button>
+                            </div>
+
+                            {detailsOpen && (
+                              <div className="mt-4 space-y-3 border-t pt-3">
+                                <p className="text-sm font-semibold">
+                                  Order details
+                                </p>
+                                {items.map((item, index) => (
+                                  <div
+                                    key={`${order.id}-detail-${index}`}
+                                    className="flex items-start justify-between gap-3 text-sm"
+                                  >
+                                    <div className="min-w-0">
+                                      <p className="font-medium">{item.name}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Quantity: {item.quantity} · Unit price:{" "}
+                                        {money(item.price)}
+                                      </p>
+                                    </div>
+                                    <p className="shrink-0 font-semibold">
+                                      {money(item.total)}
+                                    </p>
+                                  </div>
+                                ))}
+
+                                <div className="grid gap-3 rounded-lg bg-muted/40 p-3 text-sm sm:grid-cols-2">
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">
+                                      Subtotal
+                                    </p>
+                                    <p className="font-semibold">
+                                      {money(Number(order.subtotal))}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">
+                                      Order total
+                                    </p>
+                                    <p className="font-semibold">
+                                      {money(Number(order.total))}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">
+                                      Payment status
+                                    </p>
+                                    <p className="font-semibold">
+                                      {paymentStatusText(order.payment_status)}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">
+                                      Payment method
+                                    </p>
+                                    <p className="font-semibold">
+                                      {order.payment_method || "Not recorded"}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {order.notes && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-muted-foreground">
+                                      Order notes
+                                    </p>
+                                    <p className="mt-1 whitespace-pre-wrap text-sm">
+                                      {order.notes}
+                                    </p>
+                                  </div>
+                                )}
+
+                                <p className="text-[11px] text-muted-foreground">
+                                  Last updated: {dateLabel(order.updated_at)}
+                                </p>
+                              </div>
+                            )}
+                          </article>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
             );
           })}
         </section>
 
-        {/* Order history and search */}
-        <section id="order-history" className="scroll-mt-5 space-y-3">
-          <div>
-            <h2 className="font-bold">Your Order History</h2>
-            <p className="text-xs text-muted-foreground">
-              {filteredOrders.length} order(s) found
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="relative min-w-[220px] flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="search"
-                value={searchText}
-                onChange={(event) => setSearchText(event.target.value)}
-                placeholder="Find an order by number, product or status..."
-                className="field pl-10"
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={() => void loadOrders(true)}
-              disabled={refreshing}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-gold hover:underline disabled:opacity-60"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-              />
-              Refresh
-            </button>
+        {/* Search and status filters remain at the bottom */}
+        <section className="space-y-3 border-t pt-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="search"
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              placeholder="Search an order by number or product name..."
+              className="field pl-10"
+            />
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -678,10 +815,13 @@ function AccountOrdersPage() {
               <button
                 key={filter.value}
                 type="button"
-                onClick={() => setStatusFilter(filter.value)}
-                aria-pressed={statusFilter === filter.value}
+                onClick={() => {
+                  setActiveView(filter.value);
+                  setExpandedOrder(null);
+                }}
+                aria-pressed={activeView === filter.value}
                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                  statusFilter === filter.value
+                  activeView === filter.value
                     ? "border-gold bg-gold/10 text-gold"
                     : "border-border text-muted-foreground hover:border-gold/50 hover:text-foreground"
                 }`}
@@ -691,250 +831,32 @@ function AccountOrdersPage() {
             ))}
           </div>
 
-          {filteredOrders.length === 0 ? (
-            <div className="surface flex flex-col items-center rounded-2xl border px-5 py-10 text-center">
-              {orders.length === 0 ? (
-                <>
-                  <Package className="h-10 w-10 text-muted-foreground" />
-                  <h3 className="mt-3 font-semibold">No orders yet</h3>
-                  <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                    Your orders will appear here when they are linked to your
-                    customer account.
-                  </p>
-                  <Link
-                    to="/shop"
-                    className="btn btn-primary mt-4 inline-flex items-center gap-2"
-                  >
-                    <ShoppingBag className="h-4 w-4" /> Start shopping
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Search className="h-9 w-9 text-muted-foreground" />
-                  <h3 className="mt-3 font-semibold">No matching orders</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Try another search or choose a different status.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchText("");
-                      setStatusFilter("all");
-                    }}
-                    className="mt-3 text-sm font-semibold text-gold hover:underline"
-                  >
-                    Clear filters
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredOrders.map((order) => {
-                const items = readItems(order.items);
-                const dateIsOpen = expandedDates.has(order.id);
-
-                return (
-                  <article
-                    key={order.id}
-                    className="surface rounded-2xl border p-4 sm:p-5"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold">
-                            Order #{order.id.slice(0, 8).toUpperCase()}
-                          </p>
-
-                          <button
-                            type="button"
-                            onClick={() => toggleDate(order.id)}
-                            aria-label="Show order placement date and time"
-                            aria-expanded={dateIsOpen}
-                            title="Show order date and time"
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gold/40 bg-gold/10 text-gold transition hover:bg-gold/20"
-                          >
-                            <Clock3 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-
-                        {dateIsOpen && (
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            Placed on {dateTimeLabel(order.created_at)}
-                          </p>
-                        )}
-                      </div>
-
-                      <span
-                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusStyle(order.status)}`}
-                      >
-                        {statusText(order.status)}
-                      </span>
-                    </div>
-
-                    <div className="mt-4 space-y-2">
-                      {items.slice(0, 2).map((item, index) => (
-                        <div
-                          key={`${order.id}-${index}`}
-                          className="flex items-center justify-between gap-3 text-sm"
-                        >
-                          <span className="min-w-0 truncate text-muted-foreground">
-                            {item.name} × {item.quantity}
-                          </span>
-                          <span className="shrink-0 font-medium">
-                            {money(item.total)}
-                          </span>
-                        </div>
-                      ))}
-
-                      {items.length > 2 && (
-                        <p className="text-xs text-muted-foreground">
-                          +{items.length - 2} more item line(s)
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3">
-                      <div>
-                        <p className="text-[11px] text-muted-foreground">
-                          Order total
-                        </p>
-                        <p className="font-bold">
-                          {money(Number(order.total))}
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedOrder(order.id)}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-gold hover:underline"
-                      >
-                        View details <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* Selected order details */}
-        {selected && (
-          <section
-            className="surface scroll-mt-6 rounded-2xl border p-4 sm:p-5"
-            aria-live="polite"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="font-bold">
-                  Order #{selected.id.slice(0, 8).toUpperCase()}
-                </h2>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Order details
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedOrder(null)}
-                aria-label="Close order details"
-                className="rounded-lg border p-2 text-muted-foreground hover:text-foreground"
-              >
-                <XCircle className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm text-muted-foreground">
-                Order status
-              </span>
-              <span
-                className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusStyle(selected.status)}`}
-              >
-                {statusText(selected.status)}
-              </span>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              {readItems(selected.items).map((item, index) => (
-                <div
-                  key={`${selected.id}-detail-${index}`}
-                  className="flex items-start justify-between gap-3 border-b pb-3 text-sm last:border-0"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Quantity: {item.quantity} · Unit price:{" "}
-                      {money(item.price)}
-                    </p>
-                  </div>
-                  <p className="shrink-0 font-semibold">
-                    {money(item.total)}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 grid gap-3 rounded-xl bg-muted/40 p-3 text-sm sm:grid-cols-2">
-              <div>
-                <p className="text-xs text-muted-foreground">Subtotal</p>
-                <p className="font-semibold">
-                  {money(Number(selected.subtotal))}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">Order total</p>
-                <p className="font-semibold">
-                  {money(Number(selected.total))}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">
-                  Payment status
-                </p>
-                <p className="font-semibold">
-                  {paymentStatusText(selected.payment_status)}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">Payment method</p>
-                <p className="font-semibold">
-                  {selected.payment_method || "Not recorded"}
-                </p>
-              </div>
-            </div>
-
-            {selected.notes && (
-              <div className="mt-4">
-                <p className="text-xs font-semibold text-muted-foreground">
-                  Order notes
-                </p>
-                <p className="mt-1 whitespace-pre-wrap text-sm">
-                  {selected.notes}
-                </p>
-              </div>
-            )}
-
-            <p className="mt-4 text-[11px] text-muted-foreground">
-              Last record update: {dateLabel(selected.updated_at)}
-            </p>
-          </section>
-        )}
-
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-          <p className="text-xs text-muted-foreground">
-            Need help with an order?
+          <p className="text-center text-[11px] text-muted-foreground">
+            Showing {displayedOrders.length} of {orders.length} orders
           </p>
 
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => void loadOrders(true)}
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 text-xs font-semibold text-gold hover:underline disabled:opacity-60"
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+              />
+              Refresh orders
+            </button>
+          </div>
+        </section>
+
+        <div className="flex justify-end border-t pt-4">
           <Link
             to="/account/returns"
             className="inline-flex items-center gap-2 text-sm font-semibold text-gold hover:underline"
           >
-            Contact support <ArrowRight className="h-4 w-4" />
+            Need help with an order? Contact support
+            <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
