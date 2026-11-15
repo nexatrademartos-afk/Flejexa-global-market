@@ -12,6 +12,10 @@ export const Route = createFileRoute("/forgot-password")({
         name: "description",
         content: `Reset your ${BRAND.shortName} account password.`,
       },
+      {
+  name: "robots",
+  content: "noindex, nofollow",
+},
     ],
   }),
   component: ForgotPasswordPage,
