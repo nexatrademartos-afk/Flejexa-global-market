@@ -443,12 +443,15 @@ export function SiteHeader() {
 
 
 /**
- * Temporary guest welcome pop-up.
- * Appears once per browser session for visitors who are not signed in.
+ * Guest welcome pop-up.
+ * Appears at most twice per browser/device, across sessions.
  */
 export function WelcomeBanner() {
   const { signedIn, sessionReady } = useCustomerSession();
   const [visible, setVisible] = useState(false);
+
+  const STORAGE_KEY = "flejexa-guest-welcome-count-v2";
+  const MAX_SHOWS = 2;
 
   useEffect(() => {
     if (!sessionReady || signedIn) {
@@ -457,31 +460,42 @@ export function WelcomeBanner() {
     }
 
     try {
-      if (sessionStorage.getItem("flejexa-guest-welcome-seen") === "true") {
+      const storedCount = Number(
+        localStorage.getItem(STORAGE_KEY) || "0"
+      );
+
+      const showCount = Number.isFinite(storedCount)
+        ? storedCount
+        : MAX_SHOWS;
+
+      if (showCount >= MAX_SHOWS) {
         setVisible(false);
         return;
       }
-    } catch {
-      // Continue if session storage is unavailable.
-    }
 
-    setVisible(true);
+      // Save the appearance immediately so reopening the site
+      // or changing dashboards cannot trigger another appearance.
+      localStorage.setItem(
+        STORAGE_KEY,
+        String(showCount + 1)
+      );
+
+      setVisible(true);
+    } catch {
+      // If persistent storage is unavailable, do not repeatedly
+      // interrupt visitors with the welcome pop-up.
+      setVisible(false);
+    }
   }, [signedIn, sessionReady]);
 
   const dismiss = useCallback(() => {
-    try {
-      sessionStorage.setItem("flejexa-guest-welcome-seen", "true");
-    } catch {
-      // The pop-up can still be dismissed without storage.
-    }
-
     setVisible(false);
   }, []);
 
   useEffect(() => {
     if (!visible) return;
 
-  const timer = window.setTimeout(dismiss, 10000);
+    const timer = window.setTimeout(dismiss, 10000);
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") dismiss();
@@ -510,7 +524,7 @@ export function WelcomeBanner() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="flejexa-guest-welcome-title"
-      className="relative z-10 w-full max-w-[560px] max-h-[85dvh] overflow-y-auto rounded-2xl border border-gold/50 bg-[#101010] text-white shadow-[0_0_35px_rgba(212,175,55,0.2)]"
+        className="relative z-10 w-full max-w-[560px] max-h-[85dvh] overflow-y-auto rounded-2xl border border-gold/50 bg-[#101010] text-white shadow-[0_0_35px_rgba(212,175,55,0.2)]"
       >
         <div className="flex items-center justify-between border-b border-gold/20 px-5 py-4">
           <div>
@@ -532,7 +546,7 @@ export function WelcomeBanner() {
           </button>
         </div>
 
-      <div className="space-y-3 p-4 sm:p-5">
+        <div className="space-y-3 p-4 sm:p-5">
           <div>
             <h2
               id="flejexa-guest-welcome-title"
@@ -616,7 +630,7 @@ export function WelcomeBanner() {
       </section>
     </div>
   );
- }
+                }
 
 export function MobileTabBar() {
   const { signedIn, sessionReady } = useCustomerSession();
