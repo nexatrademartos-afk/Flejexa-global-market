@@ -22,7 +22,6 @@ export const Route = createFileRoute("/sitemap.xml")({
             headers: {
               "Content-Type": "application/xml; charset=utf-8",
               "Cache-Control": "public, max-age=900, s-maxage=900",
-              "X-Robots-Tag": "noindex",
             },
           });
         } catch (error) {
