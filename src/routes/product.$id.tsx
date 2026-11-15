@@ -9,7 +9,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { Heart, ShoppingCart, Zap, ChevronLeft, ChevronRight, Package } from "lucide-react";
 import { PlannedBadge } from "@/components/states";
 import {
-  fetchStoreCatalogue,
+  fetchPublicProductById,
   formatStorePrice,
   getStoreImageUrl,
 } from "@/lib/preview-data";
@@ -18,23 +18,14 @@ import { useMemo, useState, useRef } from "react";
 
 export const Route = createFileRoute("/product/$id")({
   loader: async ({ params }) => {
-    const catalogue = await fetchStoreCatalogue();
+  const result = await fetchPublicProductById(params.id);
 
-    const product = catalogue.products.find(
-      (item) => item.id === params.id,
-    );
+  if (!result) {
+    throw notFound();
+  }
 
-    if (!product) {
-      throw notFound();
-    }
-
-    const categoryName =
-      catalogue.categories.find(
-        (category) => category.id === product.category_id,
-      )?.name ?? "Marketplace";
-
-    return { product, categoryName };
-  },
+  return result;
+},
 
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -79,6 +70,17 @@ export const Route = createFileRoute("/product/$id")({
             "@context": "https://schema.org",
             "@type": "Product",
             name: product.name,
+          ...(product.brand?.trim()
+  ? {
+      brand: {
+        "@type": "Brand",
+        name: product.brand.trim(),
+      },
+    }
+  : {}),
+...(product.sku?.trim()
+  ? { sku: product.sku.trim() }
+  : {}),
             ...(product.description?.trim()
               ? {
                   description: product.description
