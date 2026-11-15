@@ -4,28 +4,15 @@ import type { FeatureRegistration } from "@/lib/feature-status";
 /**
  * FleJexa Central Feature Registry
  *
- * Register each public-facing page or service here once.
- *
- * Private routes are deliberately not registered as public features.
- * A route not found in this registry must remain excluded by default.
- *
- * Keep policy-document approval separate from the availability
- * of the public Policy Centre page.
- *
- * Indexing automation:
- * - sitemap.xml is generated only from features that pass
- *   isFeaturePubliclyDiscoverable() (see src/lib/seo-sitemap.ts).
- * - When policies are approved for public search, set indexable: true.
- * - Thin "coming soon" pages stay indexable: false until content is useful.
+ * Only explicitly published public pages may enter the sitemap.
+ * Private dashboards and account routes must never be registered here.
  */
-
 export const FEATURE_REGISTRY: readonly FeatureRegistration[] = [
   {
     id: "home",
     route: "/",
     name: "FleJexa Global Mart",
-    description:
-      "Discover products and global shopping opportunities at FleJexa Global Mart.",
+    description: "Discover products and global shopping opportunities at FleJexa Global Mart.",
     status: "active",
     audience: "public",
     published: true,
@@ -35,8 +22,7 @@ export const FEATURE_REGISTRY: readonly FeatureRegistration[] = [
     id: "about",
     route: "/about",
     name: "About FleJexa",
-    description:
-      "Discover FleJexa's story, purpose, values and marketplace vision.",
+    description: "Discover FleJexa's story, purpose, values and marketplace vision.",
     status: "active",
     audience: "public",
     published: true,
@@ -46,8 +32,27 @@ export const FEATURE_REGISTRY: readonly FeatureRegistration[] = [
     id: "shop",
     route: "/shop",
     name: "Shop",
-    description:
-      "Browse available products and categories across FleJexa Global Mart.",
+    description: "Browse available products and categories across FleJexa Global Mart.",
+    status: "active",
+    audience: "public",
+    published: true,
+    indexable: true,
+  },
+  {
+    id: "sign-in",
+    route: "/sign-in",
+    name: "Sign in to FleJexa",
+    description: "Sign in to your FleJexa Global Mart customer account.",
+    status: "active",
+    audience: "public",
+    published: true,
+    indexable: true,
+  },
+  {
+    id: "sign-up",
+    route: "/sign-up",
+    name: "Create a FleJexa account",
+    description: "Create a customer account with FleJexa Global Mart.",
     status: "active",
     audience: "public",
     published: true,
@@ -56,38 +61,41 @@ export const FEATURE_REGISTRY: readonly FeatureRegistration[] = [
   {
     id: "sell",
     route: "/sell",
-    name: "Become a Business Partner",
-    description:
-      "Learn about becoming a FleJexa business partner.",
+    name: "Sell on FleJexa",
+    description: "Learn how shops, brands and businesses can become FleJexa business partners.",
     status: "coming_soon",
     audience: "public",
     published: true,
-    // Not useful enough for search until partner content is complete.
-    indexable: false,
+    indexable: true,
+  },
+  {
+    id: "opportunities",
+    route: "/opportunities",
+    name: "FleJexa Partner and Delivery Opportunities",
+    description: "Explore business partner, delivery partner and commission partner opportunities with FleJexa.",
+    status: "coming_soon",
+    audience: "public",
+    published: true,
+    indexable: true,
   },
   {
     id: "support",
     route: "/support",
     name: "Contact and Support",
-    description:
-      "Find information about FleJexa customer assistance and support availability.",
+    description: "Find information about FleJexa customer assistance and support availability.",
     status: "coming_soon",
     audience: "public",
     published: true,
-    // Index after support content is real (not a thin shell).
     indexable: false,
   },
   {
     id: "policies",
     route: "/policies",
     name: "Policy Centre",
-    description:
-      "Review FleJexa's marketplace policy documents and their publication status.",
+    description: "Review FleJexa's marketplace policy documents and their publication status.",
     status: "active",
     audience: "public",
     published: true,
-    // Policies remain pending / draft — do not index until legal approval.
     indexable: false,
   },
 ] as const;
-    
