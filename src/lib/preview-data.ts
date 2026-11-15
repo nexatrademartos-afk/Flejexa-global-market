@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import {
   readOfflineCatalogue,
@@ -30,6 +31,10 @@ export interface StoreProduct {
   category_id: string | null;
   is_featured: boolean;
   stock: number;
+  brand?: string | null;
+  sku?: string | null;
+  created_at?: string;
+  updated_at?: string;
   merchandising_tags?: string[] | null;
 }
 
@@ -47,6 +52,11 @@ export interface StoreCatalogue {
   banners: StoreBanner[];
   savedAt?: string;
   isOfflineSnapshot?: boolean;
+}
+
+export interface SitemapProduct {
+  id: string;
+  updated_at: string;
 }
 
 /**
@@ -143,8 +153,6 @@ export function getStoreImageUrl(
 
 /**
  * Format catalogue prices using the existing storefront convention.
- * Currency configuration is a separate global-commerce task; this preserves
- * the current display behaviour without changing the checkout or database.
  */
 export function formatStorePrice(price: number): string {
   return new Intl.NumberFormat("en-ZA", {
@@ -156,7 +164,6 @@ export function formatStorePrice(price: number): string {
 
 /**
  * Maximum time to wait for the live catalogue before using the saved snapshot.
- * Prevents a stalled connection from blocking product and cart pages.
  */
 export const LIVE_CATALOGUE_TIMEOUT_MS = 8000;
 
@@ -178,7 +185,7 @@ async function fetchLiveStoreCatalogue(): Promise<StoreCatalogue> {
     supabase
       .from("products")
       .select(
-        "id,name,slug,price,compare_at_price,discount_pct,image_url,gallery,description,category_id,is_featured,stock,merchandising_tags",
+        "id,name,slug,price,compare_at_price,discount_pct,image_url,gallery,description,category_id,is_featured,stock,brand,sku,created_at,updated_at,merchandising_tags",
       )
       .eq("is_active", true)
       .gt("price", 0)
@@ -238,13 +245,53 @@ async function fetchLiveStoreCatalogue(): Promise<StoreCatalogue> {
 }
 
 /**
+ * Fetch every eligible public product for the sitemap.
+ *
+ * This is deliberately separate from fetchStoreCatalogue():
+ * - It always queries the live database.
+ * - It does not read or write offline snapshots.
+ * - It paginates instead of stopping at the storefront's 500-item limit.
+ * - It only returns products that are active, in stock and have a positive price.
+ */
+export async function fetchPublicSitemapProducts(): Promise<SitemapProduct[]> {
+  const pageSize = 500;
+  const products: SitemapProduct[] = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const to = from + pageSize - 1;
+
+    const { data, error } = await supabase
+      .from("products")
+      .select("id,updated_at")
+      .eq("is_active", true)
+      .gt("price", 0)
+      .gt("stock", 0)
+      .order("id", { ascending: true })
+      .range(from, to);
+
+    if (error) {
+      throw new Error(
+        `Unable to load sitemap products: ${error.message}`,
+      );
+    }
+
+    const page = (data ?? []) as SitemapProduct[];
+    products.push(...page);
+
+    if (page.length < pageSize) {
+      break;
+    }
+  }
+
+  return products;
+}
+
+/**
  * Loads the live public catalogue when possible and falls back to the most
  * recently saved public snapshot when the device is offline or the request
  * fails. This never persists account, authentication or admin information.
  */
 export async function fetchStoreCatalogue(): Promise<StoreCatalogue> {
-  // Only an explicit `false` means offline. Server runtimes can expose a
-  // `navigator` without `onLine`, and those must still load the live catalogue.
   const canAttemptNetwork =
     typeof navigator === "undefined" || navigator.onLine !== false;
 
@@ -259,7 +306,6 @@ export async function fetchStoreCatalogue(): Promise<StoreCatalogue> {
         try {
           await saveCatalogueOffline(catalogue);
         } catch (error) {
-          // Browsing online should continue even if local storage is unavailable.
           console.warn("Unable to save the offline catalogue snapshot:", error);
         }
       }
