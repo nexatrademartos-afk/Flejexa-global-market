@@ -1,4 +1,3 @@
-.
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BRAND, brandPageTitle } from "@/lib/brand";
