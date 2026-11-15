@@ -286,6 +286,65 @@ export async function fetchPublicSitemapProducts(): Promise<SitemapProduct[]> {
   return products;
 }
 
+
+/**
+ * Fetch one public product directly from the live database.
+ *
+ * Products that are inactive, out of stock or have no valid price
+ * are not eligible for public product pages or search indexing.
+ * This deliberately bypasses the limited/offline shop catalogue.
+ */
+export async function fetchPublicProductById(
+  id: string,
+): Promise<{ product: StoreProduct; categoryName: string } | null> {
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      "id,name,slug,price,compare_at_price,discount_pct,image_url,gallery,description,category_id,is_featured,stock,brand,sku,created_at,updated_at",
+    )
+    .eq("id", id)
+    .eq("is_active", true)
+    .gt("price", 0)
+    .gt("stock", 0)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Unable to load public product: ${error.message}`);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  const row = data as unknown as Record<string, unknown>;
+
+  const product: StoreProduct = {
+    ...(row as unknown as StoreProduct),
+    gallery: Array.isArray(row["gallery"])
+      ? (row["gallery"] as unknown[]).filter(
+          (url): url is string => typeof url === "string",
+        )
+      : null,
+  };
+
+  let categoryName = "Marketplace";
+
+  if (product.category_id) {
+    const { data: category } = await supabase
+      .from("categories")
+      .select("name")
+      .eq("id", product.category_id)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (category?.name) {
+      categoryName = category.name;
+    }
+  }
+
+  return { product, categoryName };
+}
+
 /**
  * Loads the live public catalogue when possible and falls back to the most
  * recently saved public snapshot when the device is offline or the request
