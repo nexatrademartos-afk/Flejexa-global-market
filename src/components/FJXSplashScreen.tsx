@@ -5,7 +5,8 @@ type FJXSplashScreenProps = {
   isAppReady?: boolean;
 };
 
-const STORAGE_KEY = "flejexa-fjx-intro-played";
+const STORAGE_KEY = "flejexa-fjx-intro-play-count-v2";
+const MAX_PLAYS = 1;
 
 const styles = `
 .fjx-splash {
@@ -203,17 +204,29 @@ export default function FJXSplashScreen({
   const [animationFinished, setAnimationFinished] = useState(false);
   const [exiting, setExiting] = useState(false);
 
-  useEffect(() => {
-    let alreadyPlayed = false;
+    useEffect(() => {
+    let playCount = 0;
 
     try {
-      alreadyPlayed =
-        sessionStorage.getItem(STORAGE_KEY) === "1";
+      playCount = Number(localStorage.getItem(STORAGE_KEY) || "0");
     } catch {
-      // Continue without session storage if unavailable.
+      // If persistent storage is unavailable, do not block the website.
+      return;
     }
 
-    if (alreadyPlayed) return;
+    if (!Number.isFinite(playCount) || playCount >= MAX_PLAYS) {
+      return;
+    }
+
+    // Record this appearance so it cannot play more than twice.
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        String(playCount + 1)
+      );
+    } catch {
+      return;
+    }
 
     setVisible(true);
 
