@@ -248,6 +248,7 @@ function AccountOrdersPage() {
   const [error, setError] = useState("");
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderFilter>("all");
+  const [summaryFilter, setSummaryFilter] = useState<OrderFilter>("all");
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [expandedDates, setExpandedDates] = useState<Set<string>>(
     () => new Set(),
@@ -331,6 +332,7 @@ function AccountOrdersPage() {
     const query = searchText.trim().toLowerCase();
 
     return orders.filter((order) => {
+      if (!matchesFilter(order, summaryFilter)) return false;
       if (!matchesFilter(order, statusFilter)) return false;
       if (!query) return true;
 
@@ -348,7 +350,7 @@ function AccountOrdersPage() {
         statusText(order.status).toLowerCase().includes(query)
       );
     });
-  }, [orders, searchText, statusFilter]);
+  }, [orders, searchText, statusFilter, summaryFilter]);
 
   const toggleDate = (orderId: string) => {
     setExpandedDates((previous) => {
@@ -361,15 +363,10 @@ function AccountOrdersPage() {
     });
   };
 
-  const showHistory = (filter: OrderFilter) => {
-    setStatusFilter(filter);
+  const selectSummary = (filter: OrderFilter) => {
+    setSummaryFilter(filter);
+    setStatusFilter("all");
     setSearchText("");
-
-    window.setTimeout(() => {
-      document
-        .getElementById("order-history")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
   };
 
   if (loading) {
@@ -585,238 +582,251 @@ function AccountOrdersPage() {
           )}
         </section>
 
-        {/* Clickable order summary */}
-        <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            {
-              label: "Total orders",
-              value: orders.length,
-              icon: Package,
-              filter: "all" as OrderFilter,
-            },
-            {
-              label: "In progress",
-              value: inProgressCount,
-              icon: Clock3,
-              filter: "in_progress" as OrderFilter,
-            },
-            {
-              label: "Delivered",
-              value: deliveredCount,
-              icon: PackageCheck,
-              filter: "delivered" as OrderFilter,
-            },
-            {
-              label: "Awaiting approval",
-              value: awaitingCount,
-              icon: CheckCircle2,
-              filter: "awaiting_approval" as OrderFilter,
-            },
-          ].map((stat) => {
-            const Icon = stat.icon;
-            const active = statusFilter === stat.filter;
+        {/* Summary cards and the matching orders for the selected card */}
+        <section className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              {
+                label: "Total orders",
+                value: orders.length,
+                icon: Package,
+                filter: "all" as OrderFilter,
+              },
+              {
+                label: "In progress",
+                value: inProgressCount,
+                icon: Clock3,
+                filter: "in_progress" as OrderFilter,
+              },
+              {
+                label: "Delivered",
+                value: deliveredCount,
+                icon: PackageCheck,
+                filter: "delivered" as OrderFilter,
+              },
+              {
+                label: "Awaiting approval",
+                value: awaitingCount,
+                icon: CheckCircle2,
+                filter: "awaiting_approval" as OrderFilter,
+              },
+            ].map((stat) => {
+              const Icon = stat.icon;
+              const active = summaryFilter === stat.filter;
 
-            return (
-              <button
-                key={stat.label}
-                type="button"
-                onClick={() => showHistory(stat.filter)}
-                aria-label={`Show ${stat.label.toLowerCase()} orders`}
-                aria-pressed={active}
-                className={`surface rounded-2xl border p-4 text-left transition hover:border-gold/60 hover:bg-gold/5 ${
-                  active ? "border-gold bg-gold/5" : ""
-                }`}
-              >
-                <Icon className="h-5 w-5 text-gold" />
-                <p className="mt-3 text-2xl font-bold tabular-nums">
-                  {stat.value}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {stat.label}
-                </p>
-              </button>
-            );
-          })}
-        </section>
-
-        {/* Order history and search */}
-        <section id="order-history" className="scroll-mt-5 space-y-3">
-          <div>
-            <h2 className="font-bold">Your Order History</h2>
-            <p className="text-xs text-muted-foreground">
-              {filteredOrders.length} order(s) found
-            </p>
+              return (
+                <button
+                  key={stat.label}
+                  type="button"
+                  onClick={() => selectSummary(stat.filter)}
+                  aria-label={`Show ${stat.label.toLowerCase()} orders`}
+                  aria-pressed={active}
+                  className={`surface rounded-2xl border p-4 text-left transition hover:border-gold/60 hover:bg-gold/5 ${
+                    active ? "border-gold bg-gold/5" : ""
+                  }`}
+                >
+                  <Icon className="h-5 w-5 text-gold" />
+                  <p className="mt-3 text-2xl font-bold tabular-nums">
+                    {stat.value}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {stat.label}
+                  </p>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="relative min-w-[220px] flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="search"
-                value={searchText}
-                onChange={(event) => setSearchText(event.target.value)}
-                placeholder="Find an order by number, product or status..."
-                className="field pl-10"
-              />
+          {/* Expanded order area belonging to the selected summary card */}
+          <div className="surface rounded-2xl border p-4 sm:p-5 space-y-3">
+            <div>
+              <h2 className="font-bold">
+                {summaryFilter === "all"
+                  ? "All Orders"
+                  : summaryFilter === "in_progress"
+                    ? "In Progress Orders"
+                    : summaryFilter === "delivered"
+                      ? "Delivered Orders"
+                      : "Awaiting Approval Orders"}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {filteredOrders.length} order(s) found
+              </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => void loadOrders(true)}
-              disabled={refreshing}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-gold hover:underline disabled:opacity-60"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-              />
-              Refresh
-            </button>
-          </div>
+            {/* Search and refresh remain below the summary cards */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="relative min-w-[220px] flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="search"
+                  value={searchText}
+                  onChange={(event) => setSearchText(event.target.value)}
+                  placeholder="Find an order by number, product or status..."
+                  className="field pl-10"
+                />
+              </div>
 
-          <div className="flex flex-wrap gap-2">
-            {FILTERS.map((filter) => (
               <button
-                key={filter.value}
                 type="button"
-                onClick={() => setStatusFilter(filter.value)}
-                aria-pressed={statusFilter === filter.value}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                  statusFilter === filter.value
-                    ? "border-gold bg-gold/10 text-gold"
-                    : "border-border text-muted-foreground hover:border-gold/50 hover:text-foreground"
-                }`}
+                onClick={() => void loadOrders(true)}
+                disabled={refreshing}
+                className="inline-flex items-center gap-2 text-xs font-semibold text-gold hover:underline disabled:opacity-60"
               >
-                {filter.label}
+                <RefreshCw
+                  className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+                />
+                Refresh
               </button>
-            ))}
-          </div>
-
-          {filteredOrders.length === 0 ? (
-            <div className="surface flex flex-col items-center rounded-2xl border px-5 py-10 text-center">
-              {orders.length === 0 ? (
-                <>
-                  <Package className="h-10 w-10 text-muted-foreground" />
-                  <h3 className="mt-3 font-semibold">No orders yet</h3>
-                  <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                    Your orders will appear here when they are linked to your
-                    customer account.
-                  </p>
-                  <Link
-                    to="/shop"
-                    className="btn btn-primary mt-4 inline-flex items-center gap-2"
-                  >
-                    <ShoppingBag className="h-4 w-4" /> Start shopping
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Search className="h-9 w-9 text-muted-foreground" />
-                  <h3 className="mt-3 font-semibold">No matching orders</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Try another search or choose a different status.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchText("");
-                      setStatusFilter("all");
-                    }}
-                    className="mt-3 text-sm font-semibold text-gold hover:underline"
-                  >
-                    Clear filters
-                  </button>
-                </>
-              )}
             </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredOrders.map((order) => {
-                const items = readItems(order.items);
-                const dateIsOpen = expandedDates.has(order.id);
 
-                return (
-                  <article
-                    key={order.id}
-                    className="surface rounded-2xl border p-4 sm:p-5"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold">
-                            Order #{order.id.slice(0, 8).toUpperCase()}
-                          </p>
+            {/* Status filters remain below the summary cards */}
+            <div className="flex flex-wrap gap-2">
+              {FILTERS.map((filter) => (
+                <button
+                  key={filter.value}
+                  type="button"
+                  onClick={() => setStatusFilter(filter.value)}
+                  aria-pressed={statusFilter === filter.value}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                    statusFilter === filter.value
+                      ? "border-gold bg-gold/10 text-gold"
+                      : "border-border text-muted-foreground hover:border-gold/50 hover:text-foreground"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
 
-                          <button
-                            type="button"
-                            onClick={() => toggleDate(order.id)}
-                            aria-label="Show order placement date and time"
-                            aria-expanded={dateIsOpen}
-                            title="Show order date and time"
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gold/40 bg-gold/10 text-gold transition hover:bg-gold/20"
-                          >
-                            <Clock3 className="h-3.5 w-3.5" />
-                          </button>
+            {filteredOrders.length === 0 ? (
+              <div className="surface flex flex-col items-center rounded-2xl border px-5 py-10 text-center">
+                {orders.length === 0 ? (
+                  <>
+                    <Package className="h-10 w-10 text-muted-foreground" />
+                    <h3 className="mt-3 font-semibold">No orders yet</h3>
+                    <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                      Your orders will appear here when they are linked to your
+                      customer account.
+                    </p>
+                    <Link
+                      to="/shop"
+                      className="btn btn-primary mt-4 inline-flex items-center gap-2"
+                    >
+                      <ShoppingBag className="h-4 w-4" /> Start shopping
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-9 w-9 text-muted-foreground" />
+                    <h3 className="mt-3 font-semibold">No matching orders</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Try another search or choose a different status.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchText("");
+                        setStatusFilter("all");
+                        setSummaryFilter("all");
+                      }}
+                      className="mt-3 text-sm font-semibold text-gold hover:underline"
+                    >
+                      Clear filters
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredOrders.map((order) => {
+                  const items = readItems(order.items);
+                  const dateIsOpen = expandedDates.has(order.id);
+
+                  return (
+                    <article
+                      key={order.id}
+                      className="surface rounded-2xl border p-4 sm:p-5"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-semibold">
+                              Order #{order.id.slice(0, 8).toUpperCase()}
+                            </p>
+
+                            <button
+                              type="button"
+                              onClick={() => toggleDate(order.id)}
+                              aria-label="Show order placement date and time"
+                              aria-expanded={dateIsOpen}
+                              title="Show order date and time"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gold/40 bg-gold/10 text-gold transition hover:bg-gold/20"
+                            >
+                              <Clock3 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+
+                          {dateIsOpen && (
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              Placed on {dateTimeLabel(order.created_at)}
+                            </p>
+                          )}
                         </div>
 
-                        {dateIsOpen && (
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            Placed on {dateTimeLabel(order.created_at)}
+                        <span
+                          className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusStyle(order.status)}`}
+                        >
+                          {statusText(order.status)}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 space-y-2">
+                        {items.slice(0, 2).map((item, index) => (
+                          <div
+                            key={`${order.id}-${index}`}
+                            className="flex items-center justify-between gap-3 text-sm"
+                          >
+                            <span className="min-w-0 truncate text-muted-foreground">
+                              {item.name} × {item.quantity}
+                            </span>
+                            <span className="shrink-0 font-medium">
+                              {money(item.total)}
+                            </span>
+                          </div>
+                        ))}
+
+                        {items.length > 2 && (
+                          <p className="text-xs text-muted-foreground">
+                            +{items.length - 2} more item line(s)
                           </p>
                         )}
                       </div>
 
-                      <span
-                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusStyle(order.status)}`}
-                      >
-                        {statusText(order.status)}
-                      </span>
-                    </div>
-
-                    <div className="mt-4 space-y-2">
-                      {items.slice(0, 2).map((item, index) => (
-                        <div
-                          key={`${order.id}-${index}`}
-                          className="flex items-center justify-between gap-3 text-sm"
-                        >
-                          <span className="min-w-0 truncate text-muted-foreground">
-                            {item.name} × {item.quantity}
-                          </span>
-                          <span className="shrink-0 font-medium">
-                            {money(item.total)}
-                          </span>
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3">
+                        <div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Order total
+                          </p>
+                          <p className="font-bold">
+                            {money(Number(order.total))}
+                          </p>
                         </div>
-                      ))}
 
-                      {items.length > 2 && (
-                        <p className="text-xs text-muted-foreground">
-                          +{items.length - 2} more item line(s)
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3">
-                      <div>
-                        <p className="text-[11px] text-muted-foreground">
-                          Order total
-                        </p>
-                        <p className="font-bold">
-                          {money(Number(order.total))}
-                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedOrder(order.id)}
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-gold hover:underline"
+                        >
+                          View details <ArrowRight className="h-4 w-4" />
+                        </button>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedOrder(order.id)}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-gold hover:underline"
-                      >
-                        View details <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* Selected order details */}
