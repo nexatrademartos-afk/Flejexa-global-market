@@ -555,8 +555,7 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      
+      }      
 profiles: {
   Row: {
     address: string | null
@@ -652,8 +651,6 @@ profiles: {
     },
   ]
 }
-      
-      
       referrals: {
         Row: {
           code: string
