@@ -556,53 +556,104 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
-        Row: {
-          address: string | null
-          created_at: string
-          customer_code: string | null
-          email: string | null
-          full_name: string | null
-          id: string
-          phone: string | null
-          referral_code: string | null
-          referred_by: string | null
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string
-          customer_code?: string | null
-          email?: string | null
-          full_name?: string | null
-          id: string
-          phone?: string | null
-          referral_code?: string | null
-          referred_by?: string | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          created_at?: string
-          customer_code?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          phone?: string | null
-          referral_code?: string | null
-          referred_by?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_referred_by_fkey"
-            columns: ["referred_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      
+profiles: {
+  Row: {
+    address: string | null
+    address_country_iso2: string | null
+    address_line1: string | null
+    address_line2: string | null
+    city: string | null
+    country_iso2: string | null
+    created_at: string
+    customer_code: string | null
+    email: string | null
+    first_name: string | null
+    full_name: string | null
+    id: string
+    last_name: string | null
+    phone: string | null
+    phone_country_iso2: string | null
+    phone_e164: string | null
+    postal_code: string | null
+    province: string | null
+    referral_code: string | null
+    referred_by: string | null
+    suburb: string | null
+    updated_at: string
+    whatsapp_contact_consent_at: string | null
+    whatsapp_country_iso2: string | null
+    whatsapp_phone_e164: string | null
+    whatsapp_verified_at: string | null
+  }
+  Insert: {
+    address?: string | null
+    address_country_iso2?: string | null
+    address_line1?: string | null
+    address_line2?: string | null
+    city?: string | null
+    country_iso2?: string | null
+    created_at?: string
+    customer_code?: string | null
+    email?: string | null
+    first_name?: string | null
+    full_name?: string | null
+    id: string
+    last_name?: string | null
+    phone?: string | null
+    phone_country_iso2?: string | null
+    phone_e164?: string | null
+    postal_code?: string | null
+    province?: string | null
+    referral_code?: string | null
+    referred_by?: string | null
+    suburb?: string | null
+    updated_at?: string
+    whatsapp_contact_consent_at?: string | null
+    whatsapp_country_iso2?: string | null
+    whatsapp_phone_e164?: string | null
+    whatsapp_verified_at?: string | null
+  }
+  Update: {
+    address?: string | null
+    address_country_iso2?: string | null
+    address_line1?: string | null
+    address_line2?: string | null
+    city?: string | null
+    country_iso2?: string | null
+    created_at?: string
+    customer_code?: string | null
+    email?: string | null
+    first_name?: string | null
+    full_name?: string | null
+    id?: string
+    last_name?: string | null
+    phone?: string | null
+    phone_country_iso2?: string | null
+    phone_e164?: string | null
+    postal_code?: string | null
+    province?: string | null
+    referral_code?: string | null
+    referred_by?: string | null
+    suburb?: string | null
+    updated_at?: string
+    whatsapp_contact_consent_at?: string | null
+    whatsapp_country_iso2?: string | null
+    whatsapp_phone_e164?: string | null
+    whatsapp_verified_at?: string | null
+  }
+  Relationships: [
+    {
+      foreignKeyName: "profiles_referred_by_fkey"
+      columns: ["referred_by"]
+      isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },
+  ]
+}
+      
+      
       referrals: {
         Row: {
           code: string
