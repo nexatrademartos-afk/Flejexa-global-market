@@ -45,6 +45,7 @@ export type Service = {
     | "/account/settings"
     | "/account/applications"
     | "/account/wallet";
+    | "/account/delivery"
   icon: typeof ShoppingBag;
   available: boolean;
 };
@@ -114,12 +115,12 @@ export const SERVICES: Service[] = [
     available: false,
   },
   {
-    title: "Delivery & Tracking",
-    description: "Live courier tracking",
-    to: "/account/orders",
-    icon: Truck,
-    available: false,
-  },
+  title: "Delivery Centre",
+  description: "Courier progress, secure handover and receipt confirmation",
+  to: "/account/delivery",
+  icon: Truck,
+  available: true,
+}, 
     {
     title: `${BRAND.shortName} Wallet`,
     description: "Wallet overview, deposits and financial activity",
