@@ -1,12 +1,25 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { LayoutGrid, Package, ShoppingCart, Truck, UserRound, Wallet } from "lucide-react";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useNavigate,
+} from "@tanstack/react-router";
+import {
+  LayoutGrid,
+  Package,
+  ShoppingCart,
+  Truck,
+  UserRound,
+  Wallet,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const ACCOUNT_NAV = [
   { to: "/account", label: "Overview" },
   { to: "/account/profile", label: "Profile" },
   { to: "/account/orders", label: "My Orders" },
+  { to: "/account/delivery", label: "Delivery Centre" },
   { to: "/account/addresses", label: "Delivery Addresses" },
   { to: "/account/cart", label: "My Cart" },
   { to: "/account/wishlist", label: "Shopping & Savings" },
@@ -77,7 +90,9 @@ function AccountLayout() {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
-        setSignOutError(error.message || "Failed to sign out. Please try again.");
+        setSignOutError(
+          error.message || "Failed to sign out. Please try again.",
+        );
         setSigningOut(false);
         return;
       }
@@ -93,7 +108,9 @@ function AccountLayout() {
     return (
       <main className="mx-auto max-w-md px-4 py-16 text-center">
         <p className="text-sm text-muted-foreground">
-          {checkingSession ? "Checking your customer session..." : "Taking you to sign in..."}
+          {checkingSession
+            ? "Checking your customer session..."
+            : "Taking you to sign in..."}
         </p>
       </main>
     );
@@ -102,7 +119,10 @@ function AccountLayout() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-5 pb-24 md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-8 md:py-6 md:pb-6">
       <aside className="mb-4 hidden md:block md:mb-0">
-        <nav aria-label="Customer account navigation" className="flex flex-col gap-1">
+        <nav
+          aria-label="Customer account navigation"
+          className="flex flex-col gap-1"
+        >
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Customer account
           </p>
@@ -157,8 +177,16 @@ function AccountLayout() {
         <QuickNavItem to="/account/orders" label="My Orders" icon={Package} />
         <QuickNavItem to="/account" label="Dashboard" icon={LayoutGrid} />
         <QuickNavItem to="/account/wallet" label="Wallet" icon={Wallet} />
-        <QuickNavItem to="/account/orders" label="Delivery" icon={Truck} />
-        <QuickNavItem to="/account/profile" label="Profile" icon={UserRound} />
+        <QuickNavItem
+          to="/account/delivery"
+          label="Delivery"
+          icon={Truck}
+        />
+        <QuickNavItem
+          to="/account/profile"
+          label="Profile"
+          icon={UserRound}
+        />
       </nav>
     </div>
   );
@@ -169,7 +197,13 @@ function QuickNavItem({
   label,
   icon: Icon,
 }: {
-  to: "/shop" | "/account" | "/account/orders" | "/account/wallet" | "/account/profile";
+  to:
+    | "/shop"
+    | "/account"
+    | "/account/orders"
+    | "/account/delivery"
+    | "/account/wallet"
+    | "/account/profile";
   label: string;
   icon: typeof ShoppingCart;
 }) {
