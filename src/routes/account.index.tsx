@@ -44,8 +44,8 @@ export type Service = {
     | "/account/returns"
     | "/account/settings"
     | "/account/applications"
-    | "/account/wallet";
-    | "/account/delivery"
+    | "/account/wallet"
+    | "/account/delivery";
   icon: typeof ShoppingBag;
   available: boolean;
 };
