@@ -1,6 +1,6 @@
 
 import { BRAND } from "@/lib/brand";
-
+import { CustomerNotificationBell } from "./CustomerNotificationBell";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
@@ -193,7 +193,8 @@ export function SiteHeader() {
           </nav>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="relative flex shrink-0 items-center gap-2">
+  <CustomerNotificationBell />
           <Link
             to="/wishlist"
             aria-label="Wishlist"
