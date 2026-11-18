@@ -81,7 +81,7 @@ export function CustomerNotificationBell() {
       to="/account/notifications"
       aria-label={`Notifications, ${unreadCount} unread`}
       title="Notifications"
-      className="absolute left-1/2 top-10 z-50 grid h-9 w-9 -translate-x-1/2 place-items-center rounded-full text-gold transition hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+      className="absolute left-1/2 top-8 z-50 grid h-9 w-9 -translate-x-1/2 place-items-center rounded-full text-gold transition hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
     >
       <Bell
         className={`h-5 w-5 ${unreadCount > 0 ? "animate-pulse" : ""}`}
