@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Bell } from "lucide-react";
@@ -88,7 +87,7 @@ export function CustomerNotificationBell() {
           : "Notifications"
       }
       title="Notifications"
-      className="absolute left-1/2 top-0 z-50 grid h-9 w-9 -translate-x-1/2 place-items-center rounded-full text-gold transition hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+      className="absolute left-1/2 top-12 z-50 grid h-9 w-9 -translate-x-1/2 place-items-center rounded-full text-gold transition hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
     >
       <Bell
         className={[
@@ -105,5 +104,4 @@ export function CustomerNotificationBell() {
       )}
     </Link>
   );
-    }
-      
+}
