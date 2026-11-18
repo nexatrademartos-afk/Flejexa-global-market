@@ -189,11 +189,12 @@ function CustomerProfilePage() {
   const [postalCode, setPostalCode] = useState("");
   const [addressCountry, setAddressCountry] = useState("ZA");
 
-  const [whatsappPhone, setWhatsappPhone] = useState("");
-  const [whatsappCountry, setWhatsappCountry] = useState<CountryCode>("ZA");
-  const [whatsappConsent, setWhatsappConsent] = useState(false);
-  const [whatsappVerified, setWhatsappVerified] = useState(false);
-
+const [whatsappPhone, setWhatsappPhone] = useState("");
+const [savedWhatsappPhone, setSavedWhatsappPhone] = useState("");
+const [whatsappCountry, setWhatsappCountry] = useState<CountryCode>("ZA");
+const [whatsappConsent, setWhatsappConsent] = useState(false);
+const [whatsappVerified, setWhatsappVerified] = useState(false);
+  
   const [panelStatus, setPanelStatus] = useState<
     Record<PanelName, PanelStatus>
   >({
@@ -284,7 +285,8 @@ function CustomerProfilePage() {
               : "ZA",
           );
 
-          setWhatsappPhone(loadedWhatsapp);
+         setWhatsappPhone(loadedWhatsapp);
+setSavedWhatsappPhone(loadedWhatsapp);
 
           if (isValidCountryIso2(profile.whatsapp_country_iso2)) {
             setWhatsappCountry(
@@ -369,6 +371,7 @@ function CustomerProfilePage() {
       whatsapp_phone_e164?: string | null;
       whatsapp_country_iso2?: string | null;
       whatsapp_contact_consent_at?: string | null;
+      whatsapp_verified_at?: string | null;
       address_line1?: string | null;
       address_line2?: string | null;
       suburb?: string | null;
@@ -472,6 +475,7 @@ function CustomerProfilePage() {
     );
   }
 
+  
   async function handleSaveContact(
     event: FormEvent<HTMLFormElement>,
   ) {
@@ -492,6 +496,9 @@ function CustomerProfilePage() {
         whatsappCountry,
       );
 
+      const whatsappNumberChanged =
+        normalizedWhatsapp !== savedWhatsappPhone;
+
       const hasValues = Boolean(normalizedPhone || normalizedWhatsapp);
 
       const saved = await savePanel(
@@ -507,6 +514,9 @@ function CustomerProfilePage() {
             normalizedWhatsapp && whatsappConsent
               ? new Date().toISOString()
               : null,
+          ...(whatsappNumberChanged
+            ? { whatsapp_verified_at: null }
+            : {}),
         },
         hasValues,
         "Contact details saved successfully.",
@@ -515,6 +525,11 @@ function CustomerProfilePage() {
       if (saved) {
         setPhone(normalizedPhone || "");
         setWhatsappPhone(normalizedWhatsapp || "");
+        setSavedWhatsappPhone(normalizedWhatsapp || "");
+
+        if (whatsappNumberChanged) {
+          setWhatsappVerified(false);
+        }
       }
     } catch (error) {
       setFeedback({
@@ -526,7 +541,7 @@ function CustomerProfilePage() {
       });
     }
   }
-
+  
   async function handleSaveAddress(
     event: FormEvent<HTMLFormElement>,
   ) {
@@ -781,7 +796,7 @@ function CustomerProfilePage() {
             >
               <div>
                 <label className={labelClass} htmlFor="phone_number">
-                  Contact phone number
+                  SMS phone number
                 </label>
                 <div className="grid gap-2 sm:grid-cols-[minmax(190px,0.8fr)_1.2fr]">
                   <SearchablePhoneCountry
@@ -808,8 +823,9 @@ function CustomerProfilePage() {
                   />
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Select your country code. Your number will be saved in international format.
-                </p>
+  Used for SMS order and delivery updates. No OTP verification is required.
+  Your number is saved in international format.
+</p>
               </div>
 
               <div>
@@ -854,19 +870,18 @@ function CustomerProfilePage() {
                     disabled={saving}
                   />
                   <span>
-                    I agree that authorised FleJexa support personnel may contact me on the WhatsApp number I provided.
+                    I agree that FleJexa may send me order and delivery updates through the WhatsApp number I provide.
                   </span>
                 </label>
               </div>
 
               <p className="text-xs text-muted-foreground" role="status">
-                WhatsApp verification:{" "}
-                <strong>
-                  {whatsappVerified ? "Verified" : "Not yet verified"}
-                </strong>
-                . Saving your number and consent does not verify the number.
-              </p>
-
+  WhatsApp verification:{" "}
+  <strong>
+    {whatsappVerified ? "Verified" : "Not yet verified"}
+  </strong>
+  . Verification is optional. Saving a number does not automatically verify it.
+</p>
               <div className="flex justify-end">
                 <button
                   type="submit"
@@ -1069,9 +1084,10 @@ function CustomerProfilePage() {
                     className={fieldClass}
                     value={province}
                     onChange={(event) => {
-                      setProvince(event.target.value);
-                      markPanelUnsaved("address");
-                    }}
+  setWhatsappPhone(event.target.value);
+  setWhatsappConsent(false);
+  markPanelUnsaved("contact");
+}}
                     disabled={saving}
                     maxLength={120}
                   />
@@ -1102,10 +1118,11 @@ function CustomerProfilePage() {
                     id="address_country"
                     className={fieldClass}
                     value={addressCountry}
-                    onChange={(event) => {
-                      setAddressCountry(event.target.value);
-                      markPanelUnsaved("address");
-                    }}
+                    onChange={(value) => {
+  setWhatsappCountry(value);
+  setWhatsappConsent(false);
+  markPanelUnsaved("contact");
+}}
                     disabled={saving}
                   >
                     {COUNTRY_OPTIONS.map((item) => (
