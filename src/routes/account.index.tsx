@@ -1,3 +1,4 @@
+
 import { BRAND } from "@/lib/brand";
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -112,16 +113,16 @@ export const SERVICES: Service[] = [
     description: "Order history and status",
     to: "/account/orders",
     icon: Package,
-    available: false,
+    available: true,
   },
   {
-  title: "Delivery Centre",
-  description: "Courier progress, secure handover and receipt confirmation",
-  to: "/account/delivery",
-  icon: Truck,
-  available: true,
-}, 
-    {
+    title: "Delivery Centre",
+    description: "Courier progress, secure handover and receipt confirmation",
+    to: "/account/delivery",
+    icon: Truck,
+    available: true,
+  },
+  {
     title: `${BRAND.shortName} Wallet`,
     description: "Wallet overview, deposits and financial activity",
     to: "/account/wallet",
@@ -167,7 +168,7 @@ export const Route = createFileRoute("/account/")({
   }),
   component: CustomerDashboard,
 });
-  
+
 function CustomerDashboard() {
   const [fullName, setFullName] = useState("");
   const [customerCode, setCustomerCode] = useState("");
