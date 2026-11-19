@@ -5,6 +5,7 @@ import {
   BrainCircuit,
   Boxes,
   ClipboardCheck,
+  CreditCard,
   Handshake,
   Headset,
   History,
@@ -40,6 +41,7 @@ import { CeoCustomerExperience } from "./CeoCustomerExperience";
 import { CeoExpansion } from "./CeoExpansion";
 import { CeoAudit } from "./CeoAudit";
 import { CeoSettings } from "./CeoSettings";
+import { CeoPaymentMethods } from "./CeoPaymentMethods";
 
 export const CEO_SECTIONS = [
   { id: "overview", label: "Executive Overview", icon: LayoutDashboard },
@@ -50,6 +52,7 @@ export const CEO_SECTIONS = [
   { id: "access", label: "Roles, Access & Security", icon: ShieldCheck },
   { id: "policies", label: "Policies & Compliance", icon: ScrollText },
   { id: "finance", label: "Finance & Wallet Oversight", icon: Wallet },
+  { id: "payments", label: "Payment Methods", icon: CreditCard },
   { id: "intelligence", label: "AI Executive Intelligence", icon: BrainCircuit },
   { id: "customer", label: "Customer Experience", icon: Headset },
   { id: "partners", label: "Partners & Expansion", icon: Handshake },
@@ -198,6 +201,7 @@ export function CeoDashboard({
             {isVisited("policies") && <CeoPolicies roleApplications={roleApplications} people={people} />}
           </div>
           <div hidden={active !== "finance"}>{isVisited("finance") && <CeoFinance />}</div>
+          <div hidden={active !== "payments"}>{isVisited("payments") && <CeoPaymentMethods />}</div>
           <div hidden={active !== "intelligence"}>{isVisited("intelligence") && <CeoIntelligence />}</div>
           <div hidden={active !== "customer"}>{isVisited("customer") && <CeoCustomerExperience />}</div>
           <div hidden={active !== "partners"}>
