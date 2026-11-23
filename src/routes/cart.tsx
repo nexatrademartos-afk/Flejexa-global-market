@@ -69,9 +69,11 @@ type CheckoutProfile = {
   province: string | null;
   postal_code: string | null;
   address_country_iso2: string | null;
-  whatsapp_phone_e164: string | null;
-  whatsapp_verified_at: string | null;
-  whatsapp_contact_consent_at: string | null;
+phone_e164: string | null;
+sms_contact_consent_at: string | null;
+whatsapp_phone_e164: string | null;
+whatsapp_verified_at: string | null;
+whatsapp_contact_consent_at: string | null;
 };
 
 const EMPTY_DELIVERY: DeliveryForm = {
@@ -242,9 +244,14 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [paymentMethod, setPaymentMethod] = useState("");
 
-  const [deliveryChannels, setDeliveryChannels] = useState<ContactChannel[]>([]);
-  const [notes, setNotes] = useState("");
+const [deliveryChannels, setDeliveryChannels] = useState<ContactChannel[]>([]);
 
+const [smsDestination, setSmsDestination] = useState("");
+const [whatsappDestination, setWhatsappDestination] = useState("");
+const [accountEmail, setAccountEmail] = useState("");
+const [emailVerified, setEmailVerified] = useState(false);
+
+const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [orderId, setOrderId] = useState("");
@@ -280,6 +287,8 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
         if (!active) return;
 
         setSignedIn(true);
+        setAccountEmail(user.email || "");
+setEmailVerified(Boolean(user.email_confirmed_at));
 
         const [profileResult, addressResult, paymentResult] =
           await Promise.all([
@@ -307,6 +316,10 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
 
         const loadedProfile = profileResult.data as CheckoutProfile | null;
         setProfile(loadedProfile);
+        setSmsDestination(loadedProfile?.phone_e164 || "");
+setWhatsappDestination(
+  loadedProfile?.whatsapp_phone_e164 || "",
+);
 
         if (addressResult.error) {
           console.warn(
@@ -445,25 +458,29 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
     (item) => item.quantity > item.product.stock,
   );
 
-  const normalizedDeliveryPhone = normalizePhone(
-    delivery.phone,
-    phoneCountry,
-  );
+  const normalizedSmsDestination = normalizePhone(
+  smsDestination,
+  phoneCountry,
+);
 
-  const whatsappEligible = Boolean(
-    profile?.whatsapp_phone_e164 &&
-      profile.whatsapp_verified_at &&
-      profile.whatsapp_contact_consent_at &&
-      normalizedDeliveryPhone === profile.whatsapp_phone_e164,
-  );
+const normalizedWhatsappDestination = normalizePhone(
+  whatsappDestination,
+  phoneCountry,
+);
 
-  const smsEligible = Boolean(
-    normalizedDeliveryPhone &&
-      normalizedDeliveryPhone === undefined ? false : false,
-  );
+const smsEligible = Boolean(
+  profile?.sms_contact_consent_at &&
+    normalizedSmsDestination,
+);
 
-  const emailEligible = Boolean(false);
+const whatsappEligible = Boolean(
+  profile?.whatsapp_contact_consent_at &&
+    normalizedWhatsappDestination,
+);
 
+const emailEligible = Boolean(
+  accountEmail && emailVerified,
+);
   function updateDelivery<K extends keyof DeliveryForm>(
     field: K,
     value: DeliveryForm[K],
@@ -532,17 +549,17 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
       return "There is currently no available payment method.";
     }
 
-    if (deliveryChannels.includes("whatsapp") && !whatsappEligible) {
-      return "WhatsApp PIN delivery requires the verified WhatsApp number, recorded consent and matching delivery phone.";
-    }
+if (deliveryChannels.includes("whatsapp") && !whatsappEligible) {
+  return "WhatsApp updates require a valid number and your WhatsApp contact consent.";
+}
 
-    if (deliveryChannels.includes("sms") && !smsEligible) {
-      return "SMS PIN delivery requires your verified account phone number as the delivery phone.";
-    }
+if (deliveryChannels.includes("sms") && !smsEligible) {
+  return "SMS updates require a valid number and your SMS contact consent.";
+}
 
-    if (deliveryChannels.includes("email") && !emailEligible) {
-      return "Email PIN delivery requires a verified account email address.";
-    }
+if (deliveryChannels.includes("email") && !emailEligible) {
+  return "Email updates require a verified account email address.";
+}
 
     return null;
   }
@@ -659,16 +676,24 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
           : delivery.phone.trim();
 
       const addressPayload = {
-        recipient: delivery.recipient.trim(),
-        phone: deliveryPhone,
-        street: delivery.street.trim(),
-        address_line2: delivery.address_line2.trim(),
-        suburb: delivery.suburb.trim(),
-        city: delivery.city.trim(),
-        province: delivery.province.trim(),
-        postal_code: delivery.postal_code.trim(),
-        country_iso2: delivery.country_iso2.trim().toUpperCase(),
-      };
+  recipient: delivery.recipient.trim(),
+  phone: delivery.phone.trim(),
+  street: delivery.street.trim(),
+  address_line2: delivery.address_line2.trim(),
+  suburb: delivery.suburb.trim(),
+  city: delivery.city.trim(),
+  province: delivery.province.trim(),
+  postal_code: delivery.postal_code.trim(),
+  country_iso2: delivery.country_iso2.trim().toUpperCase(),
+
+  sms_notification_phone: deliveryChannels.includes("sms")
+    ? normalizedSmsDestination
+    : null,
+
+  whatsapp_notification_phone: deliveryChannels.includes("whatsapp")
+    ? normalizedWhatsappDestination
+    : null,
+};
 
       const itemPayload = items.map(({ product, quantity }) => ({
         product_id: product.id,
@@ -1248,6 +1273,62 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
               </p>
             </div>
 
+            <div className="space-y-3 rounded-xl border p-3">
+  <div>
+    <h4 className="text-sm font-semibold">Notification destinations</h4>
+    <p className="mt-1 text-xs text-muted-foreground">
+      Your saved numbers are filled in automatically. You can change
+      them for this order without changing your Profile.
+    </p>
+  </div>
+
+  <div>
+    <label
+      htmlFor="checkout_sms_destination"
+      className="text-sm font-semibold"
+    >
+      SMS number
+    </label>
+    <input
+      id="checkout_sms_destination"
+      type="tel"
+      value={smsDestination}
+      onChange={(event) => setSmsDestination(event.target.value)}
+      className="field mt-1"
+      placeholder="+27..."
+    />
+  </div>
+
+  <div>
+    <label
+      htmlFor="checkout_whatsapp_destination"
+      className="text-sm font-semibold"
+    >
+      WhatsApp number
+    </label>
+    <input
+      id="checkout_whatsapp_destination"
+      type="tel"
+      value={whatsappDestination}
+      onChange={(event) =>
+        setWhatsappDestination(event.target.value)
+      }
+      className="field mt-1"
+      placeholder="+27..."
+    />
+  </div>
+
+  <div>
+    <p className="text-sm font-semibold">Verified account email</p>
+    <p className="mt-1 break-all text-sm text-muted-foreground">
+      {accountEmail || "No account email available"}
+    </p>
+    <p className="mt-1 text-xs text-muted-foreground">
+      {emailVerified ? "Email verified" : "Email not verified"}
+    </p>
+  </div>
+</div>
+
             <div className="flex items-start gap-3 rounded-lg bg-muted/50 p-3">
               <input type="checkbox" checked disabled className="mt-1 h-4 w-4" />
               <div>
@@ -1265,11 +1346,21 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
 
             {CONTACT_OPTIONS.map((option) => {
               const eligible =
-                option.value === "whatsapp"
-                  ? whatsappEligible
-                  : option.value === "sms"
-                    ? smsEligible
-                    : emailEligible;
+                {
+  value: "whatsapp",
+  label: "WhatsApp",
+  description: "Receive updates at your selected WhatsApp number.",
+},
+{
+  value: "sms",
+  label: "SMS / Text message",
+  description: "Receive updates at your selected SMS number.",
+},
+{
+  value: "email",
+  label: "Email",
+  description: "Receive updates at your verified account email.",
+},
 
               return (
                 <label
@@ -1441,6 +1532,40 @@ export function CartView({ catalogue }: { catalogue?: StoreCatalogue }) {
             </button>
           </div>
 
+          <div className="rounded-xl bg-muted/40 p-3">
+  <h3 className="font-semibold">Delivery notifications</h3>
+
+  <div className="mt-3 space-y-2 text-sm">
+    <p>In-app Delivery Centre — Always included</p>
+
+    {deliveryChannels.includes("whatsapp") && (
+      <p>WhatsApp — {normalizedWhatsappDestination}</p>
+    )}
+
+    {deliveryChannels.includes("sms") && (
+      <p>SMS — {normalizedSmsDestination}</p>
+    )}
+
+    {deliveryChannels.includes("email") && (
+      <p>Email — {accountEmail}</p>
+    )}
+
+    {deliveryChannels.length === 0 && (
+      <p className="text-muted-foreground">
+        Only in-app Delivery Centre selected.
+      </p>
+    )}
+  </div>
+
+  <button
+    type="button"
+    onClick={() => setStep("details")}
+    className="mt-3 text-xs font-semibold text-gold underline"
+  >
+    Edit notification preferences
+  </button>
+</div>
+          
           <div className="rounded-xl bg-muted/40 p-3">
             <h3 className="font-semibold">Payment method</h3>
             <p className="mt-1 text-sm text-muted-foreground">
