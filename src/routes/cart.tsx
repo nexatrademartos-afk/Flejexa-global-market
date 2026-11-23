@@ -294,7 +294,7 @@ setEmailVerified(Boolean(user.email_confirmed_at));
             supabase
               .from("profiles")
               .select(
-                "full_name,first_name,last_name,phone,phone_e164,phone_country_iso2,country_iso2,address,address_line1,address_line2,suburb,city,province,postal_code,address_country_iso2,whatsapp_phone_e164,whatsapp_verified_at,whatsapp_contact_consent_at",
+                "full_name,first_name,last_name,phone,phone_e164,phone_country_iso2,country_iso2,address,address_line1,address_line2,suburb,city,province,postal_code,address_country_iso2,sms_contact_consent_at,whatsapp_phone_e164,whatsapp_verified_at,whatsapp_contact_consent_at",
               )
               .eq("id", user.id)
               .maybeSingle(),
@@ -465,6 +465,11 @@ setWhatsappDestination(
 const normalizedWhatsappDestination = normalizePhone(
   whatsappDestination,
   phoneCountry,
+);
+  
+  const normalizedDeliveryPhone = normalizePhone(
+  delivery.phone,
+  delivery.country_iso2 || phoneCountry,
 );
 
 const smsEligible = Boolean(
@@ -672,7 +677,7 @@ if (deliveryChannels.includes("email") && !emailEligible) {
       const deliveryPhone =
         deliveryChannels.length > 0 && normalizedDeliveryPhone
           ? normalizedDeliveryPhone
-          : delivery.phone.trim();
+          phone: deliveryPhone,
 
       const addressPayload = {
   recipient: delivery.recipient.trim(),
