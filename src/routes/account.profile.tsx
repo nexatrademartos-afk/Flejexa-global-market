@@ -192,6 +192,7 @@ function CustomerProfilePage() {
 const [whatsappPhone, setWhatsappPhone] = useState("");
 const [savedWhatsappPhone, setSavedWhatsappPhone] = useState("");
 const [whatsappCountry, setWhatsappCountry] = useState<CountryCode>("ZA");
+const [smsConsent, setSmsConsent] = useState(false);
 const [whatsappConsent, setWhatsappConsent] = useState(false);
 const [whatsappVerified, setWhatsappVerified] = useState(false);
   
@@ -231,7 +232,7 @@ const [whatsappVerified, setWhatsappVerified] = useState(false);
         const { data: profile, error } = await supabase
           .from("profiles")
           .select(
-            "first_name,last_name,country_iso2,phone_e164,phone_country_iso2,address_line1,address_line2,suburb,city,province,postal_code,address_country_iso2,whatsapp_phone_e164,whatsapp_country_iso2,whatsapp_contact_consent_at,whatsapp_verified_at,full_name,phone,address,customer_code",
+          "first_name,last_name,country_iso2,phone_e164,phone_country_iso2,address_line1,address_line2,suburb,city,province,postal_code,address_country_iso2,whatsapp_phone_e164,whatsapp_country_iso2,whatsapp_contact_consent_at,whatsapp_verified_at,sms_contact_consent_at,full_name,phone,address,customer_code",  
           )
           .eq("id", user.id)
           .maybeSingle();
@@ -297,6 +298,7 @@ setSavedWhatsappPhone(loadedWhatsapp);
           setWhatsappConsent(
             Boolean(profile.whatsapp_contact_consent_at),
           );
+          setSmsConsent(Boolean(profile.sms_contact_consent_at));
           setWhatsappVerified(Boolean(profile.whatsapp_verified_at));
 
           setPanelStatus({
@@ -371,6 +373,7 @@ setSavedWhatsappPhone(loadedWhatsapp);
       whatsapp_phone_e164?: string | null;
       whatsapp_country_iso2?: string | null;
       whatsapp_contact_consent_at?: string | null;
+      sms_contact_consent_at?: string | null;
       whatsapp_verified_at?: string | null;
       address_line1?: string | null;
       address_line2?: string | null;
@@ -475,71 +478,86 @@ setSavedWhatsappPhone(loadedWhatsapp);
     );
   }
 
-  
-  async function handleSaveContact(
-    event: FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
+async function handleSaveContact(
+  event: FormEvent<HTMLFormElement>,
+) {
+  event.preventDefault();
 
-    if (whatsappConsent && !whatsappPhone.trim()) {
-      setFeedback({
-        type: "error",
-        message: "Enter a WhatsApp number before giving contact consent.",
-      });
-      return;
-    }
+  if (smsConsent && !phone.trim()) {
+    setFeedback({
+      type: "error",
+      message: "Enter an SMS phone number before giving SMS consent.",
+    });
+    return;
+  }
 
-    try {
-      const normalizedPhone = normalizePhone(phone, phoneCountry);
-      const normalizedWhatsapp = normalizePhone(
-        whatsappPhone,
-        whatsappCountry,
-      );
+  if (whatsappConsent && !whatsappPhone.trim()) {
+    setFeedback({
+      type: "error",
+      message: "Enter a WhatsApp number before giving contact consent.",
+    });
+    return;
+  }
 
-      const whatsappNumberChanged =
-        normalizedWhatsapp !== savedWhatsappPhone;
+  try {
+    const normalizedPhone = normalizePhone(phone, phoneCountry);
+    const normalizedWhatsapp = normalizePhone(
+      whatsappPhone,
+      whatsappCountry,
+    );
 
-      const hasValues = Boolean(normalizedPhone || normalizedWhatsapp);
+    const whatsappNumberChanged =
+      normalizedWhatsapp !== savedWhatsappPhone;
 
-      const saved = await savePanel(
-        "contact",
-        {
-          phone_e164: normalizedPhone,
-          phone_country_iso2: normalizedPhone ? phoneCountry : null,
-          whatsapp_phone_e164: normalizedWhatsapp,
-          whatsapp_country_iso2: normalizedWhatsapp
-            ? whatsappCountry
+    const hasValues = Boolean(normalizedPhone || normalizedWhatsapp);
+
+    const saved = await savePanel(
+      "contact",
+      {
+        phone_e164: normalizedPhone,
+        phone_country_iso2: normalizedPhone ? phoneCountry : null,
+
+        sms_contact_consent_at:
+          normalizedPhone && smsConsent
+            ? new Date().toISOString()
             : null,
-          whatsapp_contact_consent_at:
-            normalizedWhatsapp && whatsappConsent
-              ? new Date().toISOString()
-              : null,
-          ...(whatsappNumberChanged
-            ? { whatsapp_verified_at: null }
-            : {}),
-        },
-        hasValues,
-        "Contact details saved successfully.",
-      );
 
-      if (saved) {
-        setPhone(normalizedPhone || "");
-        setWhatsappPhone(normalizedWhatsapp || "");
-        setSavedWhatsappPhone(normalizedWhatsapp || "");
+        whatsapp_phone_e164: normalizedWhatsapp,
+        whatsapp_country_iso2: normalizedWhatsapp
+          ? whatsappCountry
+          : null,
 
-        if (whatsappNumberChanged) {
-          setWhatsappVerified(false);
-        }
+        whatsapp_contact_consent_at:
+          normalizedWhatsapp && whatsappConsent
+            ? new Date().toISOString()
+            : null,
+
+        ...(whatsappNumberChanged
+          ? { whatsapp_verified_at: null }
+          : {}),
+      },
+      hasValues,
+      "Contact details saved successfully.",
+    );
+
+    if (saved) {
+      setPhone(normalizedPhone || "");
+      setWhatsappPhone(normalizedWhatsapp || "");
+      setSavedWhatsappPhone(normalizedWhatsapp || "");
+
+      if (whatsappNumberChanged) {
+        setWhatsappVerified(false);
       }
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Enter valid phone numbers.",
-      });
     }
+  } catch (error) {
+    setFeedback({
+      type: "error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Enter valid phone numbers.",
+    });
+  }
   }
   
   async function handleSaveAddress(
@@ -857,6 +875,24 @@ setSavedWhatsappPhone(loadedWhatsapp);
                 </div>
               </div>
 
+             <div className="rounded-xl border p-3">
+  <label className="flex cursor-pointer items-start gap-3 text-sm">
+    <input
+      type="checkbox"
+      className="mt-1 h-4 w-4 accent-current"
+      checked={smsConsent}
+      onChange={(event) => {
+        setSmsConsent(event.target.checked);
+        markPanelUnsaved("contact");
+      }}
+      disabled={saving}
+    />
+    <span>
+      I agree that FleJexa may send me order and delivery updates
+      through the SMS number I provide.
+    </span>
+  </label>
+</div> 
               <div className="rounded-xl border p-3">
                 <label className="flex cursor-pointer items-start gap-3 text-sm">
                   <input
