@@ -69,7 +69,6 @@ type CheckoutProfile = {
   province: string | null;
   postal_code: string | null;
   address_country_iso2: string | null;
-phone_e164: string | null;
 sms_contact_consent_at: string | null;
 whatsapp_phone_e164: string | null;
 whatsapp_verified_at: string | null;
