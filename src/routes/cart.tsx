@@ -1345,52 +1345,42 @@ if (deliveryChannels.includes("email") && !emailEligible) {
             </div>
 
             {CONTACT_OPTIONS.map((option) => {
-              const eligible =
-                {
-  value: "whatsapp",
-  label: "WhatsApp",
-  description: "Receive updates at your selected WhatsApp number.",
-},
-{
-  value: "sms",
-  label: "SMS / Text message",
-  description: "Receive updates at your selected SMS number.",
-},
-{
-  value: "email",
-  label: "Email",
-  description: "Receive updates at your verified account email.",
-},
+  const eligible =
+    option.value === "whatsapp"
+      ? whatsappEligible
+      : option.value === "sms"
+        ? smsEligible
+        : emailEligible;
 
-              return (
-                <label
-                  key={option.value}
-                  className={`flex items-start gap-3 rounded-lg border p-3 ${
-                    eligible
-                      ? "cursor-pointer hover:bg-muted/40"
-                      : "cursor-not-allowed opacity-50"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    disabled={!eligible}
-                    checked={deliveryChannels.includes(option.value)}
-                    onChange={() => toggleDeliveryChannel(option.value)}
-                    className="mt-1 h-4 w-4"
-                  />
-                  <span>
-                    <span className="block text-sm font-semibold">
-                      {option.label}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">
-                      {eligible
-                        ? option.description
-                        : "This option requires a verified matching contact detail and any required consent."}
-                    </span>
-                  </span>
-                </label>
-              );
-            })}
+  return (
+    <label
+      key={option.value}
+      className={`flex items-start gap-3 rounded-lg border p-3 ${
+        eligible
+          ? "cursor-pointer hover:bg-muted/40"
+          : "cursor-not-allowed opacity-50"
+      }`}
+    >
+      <input
+        type="checkbox"
+        disabled={!eligible}
+        checked={deliveryChannels.includes(option.value)}
+        onChange={() => toggleDeliveryChannel(option.value)}
+        className="mt-1 h-4 w-4"
+      />
+      <span>
+        <span className="block text-sm font-semibold">
+          {option.label}
+        </span>
+        <span className="mt-0.5 block text-xs text-muted-foreground">
+          {eligible
+            ? option.description
+            : "This option requires a valid contact detail and the required consent or verification."}
+        </span>
+      </span>
+    </label>
+  );
+})}
           </div>
 
           <div>
