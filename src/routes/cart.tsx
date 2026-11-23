@@ -674,30 +674,31 @@ if (deliveryChannels.includes("email") && !emailEligible) {
       if (authError) throw authError;
       if (!user) throw new Error("Your session has expired. Please sign in again.");
 
+      
       const deliveryPhone =
         deliveryChannels.length > 0 && normalizedDeliveryPhone
           ? normalizedDeliveryPhone
-          phone: deliveryPhone,
+          : delivery.phone.trim();
 
       const addressPayload = {
-  recipient: delivery.recipient.trim(),
-  phone: delivery.phone.trim(),
-  street: delivery.street.trim(),
-  address_line2: delivery.address_line2.trim(),
-  suburb: delivery.suburb.trim(),
-  city: delivery.city.trim(),
-  province: delivery.province.trim(),
-  postal_code: delivery.postal_code.trim(),
-  country_iso2: delivery.country_iso2.trim().toUpperCase(),
+        recipient: delivery.recipient.trim(),
+        phone: deliveryPhone,
+        street: delivery.street.trim(),
+        address_line2: delivery.address_line2.trim(),
+        suburb: delivery.suburb.trim(),
+        city: delivery.city.trim(),
+        province: delivery.province.trim(),
+        postal_code: delivery.postal_code.trim(),
+        country_iso2: delivery.country_iso2.trim().toUpperCase(),
 
-  sms_notification_phone: deliveryChannels.includes("sms")
-    ? normalizedSmsDestination
-    : null,
+        sms_notification_phone: deliveryChannels.includes("sms")
+          ? normalizedSmsDestination
+          : null,
 
-  whatsapp_notification_phone: deliveryChannels.includes("whatsapp")
-    ? normalizedWhatsappDestination
-    : null,
-};
+        whatsapp_notification_phone: deliveryChannels.includes("whatsapp")
+          ? normalizedWhatsappDestination
+          : null,
+      };
 
       const itemPayload = items.map(({ product, quantity }) => ({
         product_id: product.id,
