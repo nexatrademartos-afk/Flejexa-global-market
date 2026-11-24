@@ -869,7 +869,7 @@ setOrderReference(savedOrder.order_reference);
               Your order reference
             </p>
             <p className="mt-1 break-all font-bold">
-  {orderReference || `#${orderId.slice(0, 8).toUpperCase()}`}
+           {orderReference || "Public order reference unavailable — please check My Orders"}
 </p>
           </div>
 
