@@ -19,6 +19,7 @@ import {
 
 type OrderRecord = {
   id: string;
+  order_reference: string | null;
   created_at: string;
   updated_at: string;
   customer_name: string;
@@ -279,7 +280,7 @@ function AccountOrdersPage() {
       const { data, error: orderError } = await supabase
         .from("orders")
         .select(
-          "id, created_at, updated_at, customer_name, items, subtotal, total, status, payment_status, payment_method, source, notes",
+          "id, order_reference, created_at, updated_at, customer_name, items, subtotal, total, status, payment_status, payment_method, source, notes",
         )
         .eq("customer_id", user.id)
         .order("created_at", { ascending: false });
@@ -432,9 +433,8 @@ function AccountOrdersPage() {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-semibold">
-                        Order #{currentOrder.id.slice(0, 8).toUpperCase()}
-                      </p>
-
+                        Order {currentOrder.order_reference || `#${currentOrder.id.slice(0, 8).toUpperCase()}`}
+                  </p>
                       <button
                         type="button"
                         onClick={() => toggleDate(currentOrder.id)}
@@ -783,7 +783,7 @@ function AccountOrdersPage() {
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="font-semibold">
-                                Order #{order.id.slice(0, 8).toUpperCase()}
+                                Order {selected.order_reference || `#${selected.id.slice(0, 8).toUpperCase()}`}
                               </p>
 
                               <button
@@ -868,7 +868,7 @@ function AccountOrdersPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="font-bold">
-                      Order #{selected.id.slice(0, 8).toUpperCase()}
+                      Order {order.order_reference || `#${order.id.slice(0, 8).toUpperCase()}`}
                     </h2>
                     <p className="mt-1 text-xs text-muted-foreground">
                       Order details
