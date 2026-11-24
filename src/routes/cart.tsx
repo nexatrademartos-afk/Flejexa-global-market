@@ -254,6 +254,7 @@ const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [orderId, setOrderId] = useState("");
+const [orderReference, setOrderReference] = useState("");
 
   const requestRef = useRef<{
     fingerprint: string;
@@ -747,6 +748,11 @@ if (deliveryChannels.includes("email") && !emailEligible) {
       }
 
       setOrderId(data.order_id);
+setOrderReference(
+  typeof data.order_reference === "string"
+    ? data.order_reference
+    : "",
+);
 
       // Clear only the cart after the server confirms order creation.
       localStorage.setItem("nexa-cart", "[]");
@@ -837,8 +843,8 @@ if (deliveryChannels.includes("email") && !emailEligible) {
               Your order reference
             </p>
             <p className="mt-1 break-all font-bold">
-              #{orderId.slice(0, 8).toUpperCase()}
-            </p>
+  {orderReference || `#${orderId.slice(0, 8).toUpperCase()}`}
+</p>
           </div>
 
           <p className="mt-4 text-sm text-muted-foreground">
