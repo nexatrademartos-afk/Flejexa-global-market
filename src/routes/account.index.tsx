@@ -49,7 +49,7 @@ export type Service = {
     | "/account/wallet"
     | "/account/delivery";
   icon: typeof ShoppingBag;
-  status: "available" | "partial" | "planned";
+  available: boolean;
 };
 
 export const SERVICES: Service[] = [
