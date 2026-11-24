@@ -783,7 +783,7 @@ function AccountOrdersPage() {
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="font-semibold">
-                                Order {selected.order_reference || "Legacy order — no public reference"}
+                                Order {order.order_reference || "Legacy order — no public reference"}
                               </p>
 
                               <button
@@ -868,7 +868,7 @@ function AccountOrdersPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="font-bold">
-                      Order {order.order_reference || "Legacy order — no public reference"}
+                      Order {selected.order_reference || "Legacy order — no public reference"}
                     </h2>
                     <p className="mt-1 text-xs text-muted-foreground">
                       Order details
