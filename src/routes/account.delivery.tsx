@@ -18,6 +18,7 @@ import {
 
 type OrderRecord = {
   id: string;
+  order_reference: string | null;
   created_at: string;
   status: string;
   total: number;
@@ -73,6 +74,19 @@ type DeliveryRecord = {
   order: OrderRecord;
   confirmation: DeliveryConfirmation | null;
   events: DeliveryEvent[];
+};
+
+type DeliveryPinState = {
+  status:
+    | "not_requested"
+    | "active"
+    | "expired"
+    | "invalidated"
+    | "verified"
+    | "unavailable";
+  expires_at: string | null;
+  attempts_remaining: number;
+  pin_code: string | null;
 };
 
 type ReceiptCondition = "good" | "damaged" | "incomplete" | "refused";
@@ -189,6 +203,10 @@ export const Route = createFileRoute("/account/delivery")({
 
 function AccountDeliveryPage() {
   const [deliveries, setDeliveries] = useState<DeliveryRecord[]>([]);
+  const [deliveryPins, setDeliveryPins] = useState<
+  Record<string, DeliveryPinState>
+>({});
+const [pinNow, setPinNow] = useState(Date.now());
   const [agreement, setAgreement] = useState<DeliveryAgreement | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -230,7 +248,7 @@ function AccountDeliveryPage() {
       const { data: orderRows, error: orderError } = await supabase
         .from("orders")
         .select(
-          "id, created_at, status, total, items, customer_name, customer_address, customer_phone",
+          "id, order_reference, created_at, status, total, items, customer_name, customer_address, customer_phone",
         )
         .eq("customer_id", user.id)
         .order("created_at", { ascending: false });
@@ -270,11 +288,85 @@ function AccountDeliveryPage() {
 
       const deliveryJobs = (jobs ?? []) as DeliveryJob[];
       const deliveryIds = deliveryJobs.map((job) => job.id);
+      if (deliveryIds.length === 0) {
+  setDeliveryPins({});
+} else {
+  const pinEntries = await Promise.all(
+    deliveryJobs
+      .filter((job) => job.status === "arrived")
+      .map(async (job) => {
+        try {
+          const { data: statusData, error: statusError } = await db.rpc(
+            "customer_delivery_pin_status",
+            { p_delivery_id: job.id },
+          );
+
+          if (statusError) throw statusError;
+
+          const statusRow = Array.isArray(statusData)
+            ? statusData[0]
+            : statusData;
+
+          if (!statusRow) {
+            return [
+              job.id,
+              {
+                status: "unavailable",
+                expires_at: null,
+                attempts_remaining: 0,
+                pin_code: null,
+              } satisfies DeliveryPinState,
+            ] as const;
+          }
+
+          let pinCode: string | null = null;
+
+          if (statusRow.pin_status === "active") {
+            const { data: pinData, error: pinError } = await db.rpc(
+              "customer_get_delivery_pin",
+              { p_delivery_id: job.id },
+            );
+
+            if (pinError) throw pinError;
+
+            const pinRow = Array.isArray(pinData)
+              ? pinData[0]
+              : pinData;
+
+            pinCode = pinRow?.pin_code ?? null;
+          }
+
+          return [
+            job.id,
+            {
+              status: statusRow.pin_status,
+              expires_at: statusRow.expires_at,
+              attempts_remaining: statusRow.attempts_remaining,
+              pin_code: pinCode,
+            } satisfies DeliveryPinState,
+          ] as const;
+        } catch {
+          return [
+            job.id,
+            {
+              status: "unavailable",
+              expires_at: null,
+              attempts_remaining: 0,
+              pin_code: null,
+            } satisfies DeliveryPinState,
+          ] as const;
+        }
+      }),
+  );
+
+  setDeliveryPins(Object.fromEntries(pinEntries));
+      }
 
       setAgreement((agreementRow as DeliveryAgreement | null) ?? null);
 
       if (deliveryIds.length === 0) {
         setDeliveries([]);
+        setDeliveryPins({});
         return;
       }
 
@@ -342,6 +434,14 @@ function AccountDeliveryPage() {
     void loadDeliveries();
   }, [loadDeliveries]);
 
+useEffect(() => {
+  const timer = window.setInterval(() => {
+    setPinNow(Date.now());
+  }, 1000);
+
+  return () => window.clearInterval(timer);
+}, []);
+  
   const activeCount = useMemo(
     () =>
       deliveries.filter(
