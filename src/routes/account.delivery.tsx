@@ -725,7 +725,7 @@ useEffect(() => {
                       {job.id.slice(0, 8).toUpperCase()}
                     </h3>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Order {order.order_reference || `#${order.id.slice(0, 8).toUpperCase()}`}
+                      Order {order.order_reference || "Legacy order — no public reference"}
                     </p>
                   </div>
 
