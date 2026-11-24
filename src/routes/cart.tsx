@@ -747,13 +747,39 @@ if (deliveryChannels.includes("email") && !emailEligible) {
         );
       }
 
-      setOrderId(data.order_id);
-setOrderReference(
-  typeof data.order_reference === "string"
-    ? data.order_reference
-    : "",
-);
+      const { data: savedOrder, error: referenceError } = await supabase
+  .from("orders")
+  .select("order_reference")
+  .eq("id", data.order_id)
+  .maybeSingle();
 
+if (referenceError) {
+  throw new Error(
+    "Your order was created, but its public reference could not be retrieved. Please check My Orders before trying again.",
+  );
+}
+
+if (
+  !savedOrder ||
+  typeof savedOrder.order_reference !== "string" ||
+  !savedOrder.order_reference.startsWith("#FJX-")
+) {
+  throw new Error(
+    "Your order was created, but the backend did not return a valid public order reference. Please check My Orders before trying again.",
+  );
+}
+
+if (
+  typeof data.order_reference === "string" &&
+  data.order_reference !== savedOrder.order_reference
+) {
+  throw new Error(
+    "The checkout response and saved order reference do not match. Please contact support before retrying.",
+  );
+}
+
+setOrderId(data.order_id);
+setOrderReference(savedOrder.order_reference);
       // Clear only the cart after the server confirms order creation.
       localStorage.setItem("nexa-cart", "[]");
       localStorage.setItem("nexa-cart-quantities", "{}");
