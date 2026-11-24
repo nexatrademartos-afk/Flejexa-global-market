@@ -725,7 +725,7 @@ useEffect(() => {
                       {job.id.slice(0, 8).toUpperCase()}
                     </h3>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Order #{order.id.slice(0, 8).toUpperCase()}
+                      Order {order.order_reference || `#${order.id.slice(0, 8).toUpperCase()}`}
                     </p>
                   </div>
 
@@ -837,6 +837,106 @@ useEffect(() => {
                     <span>{order.customer_address}</span>
                   </div>
                 )}
+
+                {isArrived && (() => {
+  const pin = deliveryPins[job.id];
+
+  const remainingSeconds = pin?.expires_at
+    ? Math.max(
+        0,
+        Math.ceil((new Date(pin.expires_at).getTime() - pinNow) / 1000),
+      )
+    : 0;
+
+  const countdown = `${Math.floor(remainingSeconds / 60)
+    .toString()
+    .padStart(2, "0")}:${(remainingSeconds % 60)
+    .toString()
+    .padStart(2, "0")}`;
+
+  return (
+    <section className="space-y-3 rounded-xl border border-gold/40 bg-gold/5 p-4">
+      <div className="flex items-center gap-2">
+        <ShieldCheck className="h-5 w-5 text-gold" />
+        <h4 className="text-sm font-bold">
+          Your secure courier delivery PIN
+        </h4>
+      </div>
+
+      {!pin && (
+        <p className="text-xs leading-5 text-muted-foreground">
+          Checking your delivery PIN status...
+        </p>
+      )}
+
+      {pin?.status === "not_requested" && (
+        <p className="text-xs leading-5 text-muted-foreground">
+          Your courier has arrived. Your delivery PIN will appear here
+          once the assigned courier requests it.
+        </p>
+      )}
+
+      {pin?.status === "unavailable" && (
+        <p className="text-xs leading-5 text-muted-foreground">
+          We couldn't retrieve your PIN status right now.
+          Please refresh the Delivery Centre.
+        </p>
+      )}
+
+      {pin?.status === "active" && remainingSeconds > 0 && (
+        <>
+          {pin.pin_code ? (
+            <div className="rounded-xl border bg-background p-4 text-center">
+              <p className="text-xs text-muted-foreground">
+                Your six-digit delivery PIN
+              </p>
+              <p
+                className="mt-2 font-mono text-3xl font-bold tracking-[0.3em]"
+                aria-label="Your delivery PIN"
+              >
+                {pin.pin_code}
+              </p>
+              <p className="mt-3 text-xs font-semibold text-gold">
+                Expires in {countdown}
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Your PIN is active, but could not be displayed.
+              Please refresh the page.
+            </p>
+          )}
+
+          <p className="rounded-lg bg-red-500/10 p-3 text-xs font-semibold leading-5 text-red-600 dark:text-red-400">
+            Security warning: Only give this PIN to your assigned courier.
+            Never share it with anyone else.
+          </p>
+        </>
+      )}
+
+      {(pin?.status === "expired" ||
+        (pin?.status === "active" && remainingSeconds === 0)) && (
+        <p className="text-xs leading-5 text-muted-foreground">
+          This PIN has expired. Ask your courier to request a fresh PIN.
+        </p>
+      )}
+
+      {pin?.status === "invalidated" && (
+        <p className="text-xs leading-5 text-muted-foreground">
+          Your previous PIN is no longer valid. Ask your courier to
+          request a new one.
+        </p>
+      )}
+
+      {pin?.status === "verified" && (
+        <p className="flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+          <CheckCircle2 className="h-5 w-5" />
+          PIN VERIFIED — your courier successfully verified the handover PIN.
+        </p>
+      )}
+    </section>
+  );
+})()}
 
                 {isArrived && !isAccepted && (
                   <section className="space-y-3 rounded-xl border border-gold/40 bg-gold/5 p-4">
