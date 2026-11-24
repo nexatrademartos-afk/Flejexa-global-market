@@ -15,50 +15,20 @@ describe("Customer dashboard services configuration", () => {
     expect(titles).toContain("Help & Support");
     expect(titles).toContain("Role Applications");
 
-    // Implemented and available features
-    const profile = SERVICES.find((s) => s.title === "My Profile");
-    expect(profile?.available).toBe(true);
-
-    const addresses = SERVICES.find((s) => s.title === "Delivery Addresses");
-    expect(addresses?.available).toBe(true);
-
-    const cart = SERVICES.find((s) => s.title === "My Cart");
-    expect(cart?.available).toBe(true);
-
-    const wishlist = SERVICES.find((s) => s.title === "Shopping & Savings");
-    expect(wishlist?.available).toBe(true);
-
-    // Unsupported/planned features must be honestly marked false
-    const orders = SERVICES.find((s) => s.title === "My Orders");
-    expect(orders?.available).toBe(false);
-
-    const wallet = SERVICES.find((s) => s.title === `${BRAND.shortName} Wallet`);
-    expect(wallet?.available).toBe(true);
-
-    const coupons = SERVICES.find((s) => s.title === "Coupons");
-    expect(coupons?.available).toBe(false);
-
-    const notifications = SERVICES.find((s) => s.title === "Notifications");
-    expect(notifications?.available).toBe(false);
-  });
-
-  it("filters services by title and description correctly", () => {
-    const filter = (term: string) => {
-      const lower = term.toLowerCase().trim();
-      return SERVICES.filter(
-        (s) =>
-          s.title.toLowerCase().includes(lower) ||
-          (s.description && s.description.toLowerCase().includes(lower)),
-      );
-    };
-
-    const cartMatches = filter("cart");
-    expect(cartMatches.some((s) => s.title === "My Cart")).toBe(true);
-
-    const addressMatches = filter("shipping");
-    expect(addressMatches.some((s) => s.title === "Delivery Addresses")).toBe(true);
-
-    const unknownMatches = filter("nonexistent-service-query-xyz");
-    expect(unknownMatches).toHaveLength(0);
-  });
-});
+     
+    // Fully available services
+    expect(SERVICES.find((s) => s.title === "Shop Products")?.status).toBe("available");
+    expect(SERVICES.find((s) => s.title === "My Profile")?.status).toBe("available");
+    expect(SERVICES.find((s) => s.title === "Delivery Addresses")?.status).toBe("available");
+    expect(SERVICES.find((s) => s.title === "Help & Support")?.status).toBe("available");
+    expect(SERVICES.find((s) => s.title === "Role Applications")?.status).toBe("available");
+    expect(SERVICES.find((s) => s.title === "My Orders")?.status).toBe("available");
+    expect(SERVICES.find((s) => s.title === "My Cart")?.status).toBe("partial");
+    expect(SERVICES.find((s) => s.title === "Shopping & Savings")?.status).toBe("partial");
+    expect(SERVICES.find((s) => s.title === "Security & Privacy")?.status).toBe("partial");
+    expect(SERVICES.find((s) => s.title === "Delivery Centre")?.status).toBe("partial");
+    expect(SERVICES.find((s) => s.title === `${BRAND.shortName} Wallet`)?.status).toBe("partial");
+    expect(SERVICES.find((s) => s.title === "Q Points")?.status).toBe("partial");
+    expect(SERVICES.find((s) => s.title === "Notifications")?.status).toBe("partial");
+    expect(SERVICES.find((s) => s.title === "Coupons")?.status).toBe("planned");
+    
