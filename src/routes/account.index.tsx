@@ -58,98 +58,98 @@ export const SERVICES: Service[] = [
     description: "Browse live products and catalogue",
     to: "/shop",
     icon: ShoppingBag,
-    available
+    available: true,
   },
   {
     title: "My Cart",
     description: "View and adjust items in your cart",
     to: "/account/cart",
     icon: ShoppingBag,
-    available
+    available: true,
   },
   {
     title: "Shopping & Savings",
     description: "Your saved items and wishlist",
     to: "/account/wishlist",
     icon: Heart,
-    available
+    aavailable: true,
   },
   {
     title: "My Profile",
     description: "Manage personal details and contact info",
     to: "/account/profile",
     icon: UserRound,
-    available
+    ,available: true,
   },
   {
     title: "Delivery Addresses",
     description: "Manage saved shipping addresses",
     to: "/account/addresses",
     icon: MapPin,
-    available
+    available: true,
   },
   {
     title: "Security & Privacy",
     description: "Password reset and account preferences",
     to: "/account/settings",
     icon: ShieldCheck,
-    available
+    available: true,
   },
   {
     title: "Help & Support",
     description: "Customer service and WhatsApp enquiries",
     to: "/account/returns",
     icon: CircleHelp,
-    available
+    available: true,
   },
   {
     title: "Role Applications",
     description: "Apply for Partner and Delivery roles",
     to: "/account/applications",
     icon: Compass,
-    available
+    available: true,
   },
   {
     title: "My Orders",
     description: "Order history and status",
     to: "/account/orders",
     icon: Package,
-    available
+    available: true,
   },
   {
     title: "Delivery Centre",
     description: "Courier progress, secure handover and receipt confirmation",
     to: "/account/delivery",
     icon: Truck,
-    available
+    available: true,
   },
   {
     title: `${BRAND.shortName} Wallet`,
     description: "Wallet overview, deposits and financial activity",
     to: "/account/wallet",
     icon: Wallet,
-    available
+    available: true,
   },
   {
     title: "Q Points",
     description: "Earn and redeem loyalty points",
     to: "/account/rewards",
     icon: Gift,
-    available
+    available: true,
   },
   {
     title: "Coupons",
     description: "Discounts and promotional vouchers",
     to: "/account/rewards",
     icon: TicketPercent,
-    available
+    available: true,
   },
   {
     title: "Notifications",
     description: "Account alerts and order updates",
     to: "/account/notifications",
     icon: Bell,
-    available
+    available: true,
   },
 ];
 
