@@ -30,6 +30,7 @@ type CustomerProfile = {
   customer_code: string | null;
 };
 
+
 export type Service = {
   title: string;
   description?: string;
@@ -48,7 +49,7 @@ export type Service = {
     | "/account/wallet"
     | "/account/delivery";
   icon: typeof ShoppingBag;
-  available: boolean;
+  status: "available" | "partial" | "planned";
 };
 
 export const SERVICES: Service[] = [
@@ -57,98 +58,98 @@ export const SERVICES: Service[] = [
     description: "Browse live products and catalogue",
     to: "/shop",
     icon: ShoppingBag,
-    available: true,
+    available
   },
   {
     title: "My Cart",
     description: "View and adjust items in your cart",
     to: "/account/cart",
     icon: ShoppingBag,
-    available: true,
+    available
   },
   {
     title: "Shopping & Savings",
     description: "Your saved items and wishlist",
     to: "/account/wishlist",
     icon: Heart,
-    available: true,
+    available
   },
   {
     title: "My Profile",
     description: "Manage personal details and contact info",
     to: "/account/profile",
     icon: UserRound,
-    available: true,
+    available
   },
   {
     title: "Delivery Addresses",
     description: "Manage saved shipping addresses",
     to: "/account/addresses",
     icon: MapPin,
-    available: true,
+    available
   },
   {
     title: "Security & Privacy",
     description: "Password reset and account preferences",
     to: "/account/settings",
     icon: ShieldCheck,
-    available: true,
+    available
   },
   {
     title: "Help & Support",
     description: "Customer service and WhatsApp enquiries",
     to: "/account/returns",
     icon: CircleHelp,
-    available: true,
+    available
   },
   {
     title: "Role Applications",
     description: "Apply for Partner and Delivery roles",
     to: "/account/applications",
     icon: Compass,
-    available: true,
+    available
   },
   {
     title: "My Orders",
     description: "Order history and status",
     to: "/account/orders",
     icon: Package,
-    available: true,
+    available
   },
   {
     title: "Delivery Centre",
     description: "Courier progress, secure handover and receipt confirmation",
     to: "/account/delivery",
     icon: Truck,
-    available: true,
+    available
   },
   {
     title: `${BRAND.shortName} Wallet`,
     description: "Wallet overview, deposits and financial activity",
     to: "/account/wallet",
     icon: Wallet,
-    available: true,
+    available
   },
   {
     title: "Q Points",
     description: "Earn and redeem loyalty points",
     to: "/account/rewards",
     icon: Gift,
-    available: false,
+    available
   },
   {
     title: "Coupons",
     description: "Discounts and promotional vouchers",
     to: "/account/rewards",
     icon: TicketPercent,
-    available: false,
+    available
   },
   {
     title: "Notifications",
     description: "Account alerts and order updates",
     to: "/account/notifications",
     icon: Bell,
-    available: false,
+    available
   },
 ];
 
@@ -385,6 +386,18 @@ function CustomerDashboard() {
 function ServiceCard({ service, featured = false }: { service: Service; featured?: boolean }) {
   const Icon = service.icon;
 
+  const statusLabel = {
+    available: "Available",
+    partial: "Partially available",
+    planned: "Coming soon",
+  }[service.status];
+
+  const statusClass = {
+    available: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    partial: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    planned: "border-border bg-muted text-muted-foreground",
+  }[service.status];
+
   return (
     <Link
       to={service.to}
@@ -394,9 +407,7 @@ function ServiceCard({ service, featured = false }: { service: Service; featured
         "sm:min-h-36 sm:p-4",
         featured
           ? "border-gold/50 bg-gold-soft"
-          : service.available
-            ? "surface"
-            : "surface border-border",
+          : "surface",
       ].join(" ")}
     >
       <div className="flex items-start justify-between gap-2">
@@ -404,13 +415,19 @@ function ServiceCard({ service, featured = false }: { service: Service; featured
           <Icon className="h-5 w-5 text-gold" aria-hidden="true" />
         </span>
 
-        {!service.available && <PlannedBadge label="Coming soon" />}
+        {service.status !== "available" && (
+          <span className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusClass}`}>
+            {statusLabel}
+          </span>
+        )}
       </div>
 
-      <span className="mt-3 text-sm font-bold leading-5 sm:text-base">{service.title}</span>
+      <span className="mt-3 text-sm font-bold leading-5 sm:text-base">
+        {service.title}
+      </span>
 
       <span className="mt-auto flex items-center gap-1 pt-3 text-xs font-semibold text-muted-foreground transition-colors group-hover:text-gold">
-        {service.available ? "Open" : "View"}
+        {service.status === "planned" ? "View details" : "Open"}
         <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
       </span>
     </Link>
