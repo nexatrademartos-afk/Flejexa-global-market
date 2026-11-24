@@ -30,7 +30,6 @@ type CustomerProfile = {
   customer_code: string | null;
 };
 
-
 export type Service = {
   title: string;
   description?: string;
@@ -72,14 +71,14 @@ export const SERVICES: Service[] = [
     description: "Your saved items and wishlist",
     to: "/account/wishlist",
     icon: Heart,
-    aavailable: true,
+    available: true,
   },
   {
     title: "My Profile",
     description: "Manage personal details and contact info",
     to: "/account/profile",
     icon: UserRound,
-    ,available: true,
+    available: true,
   },
   {
     title: "Delivery Addresses",
@@ -386,18 +385,6 @@ function CustomerDashboard() {
 function ServiceCard({ service, featured = false }: { service: Service; featured?: boolean }) {
   const Icon = service.icon;
 
-  const statusLabel = {
-    available: "Available",
-    partial: "Partially available",
-    planned: "Coming soon",
-  }[service.status];
-
-  const statusClass = {
-    available: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    partial: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-    planned: "border-border bg-muted text-muted-foreground",
-  }[service.status];
-
   return (
     <Link
       to={service.to}
@@ -407,7 +394,9 @@ function ServiceCard({ service, featured = false }: { service: Service; featured
         "sm:min-h-36 sm:p-4",
         featured
           ? "border-gold/50 bg-gold-soft"
-          : "surface",
+          : service.available
+            ? "surface"
+            : "surface border-border",
       ].join(" ")}
     >
       <div className="flex items-start justify-between gap-2">
@@ -415,19 +404,13 @@ function ServiceCard({ service, featured = false }: { service: Service; featured
           <Icon className="h-5 w-5 text-gold" aria-hidden="true" />
         </span>
 
-        {service.status !== "available" && (
-          <span className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusClass}`}>
-            {statusLabel}
-          </span>
-        )}
+        {!service.available && <PlannedBadge label="Coming soon" />}
       </div>
 
-      <span className="mt-3 text-sm font-bold leading-5 sm:text-base">
-        {service.title}
-      </span>
+      <span className="mt-3 text-sm font-bold leading-5 sm:text-base">{service.title}</span>
 
       <span className="mt-auto flex items-center gap-1 pt-3 text-xs font-semibold text-muted-foreground transition-colors group-hover:text-gold">
-        {service.status === "planned" ? "View details" : "Open"}
+        {service.available ? "Open" : "View"}
         <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
       </span>
     </Link>
