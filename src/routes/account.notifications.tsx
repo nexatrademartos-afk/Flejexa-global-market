@@ -69,6 +69,33 @@ function getDestination(type: NotificationType) {
   }
 }
 
+const CUSTOMER_NOTIFICATION_LINKS = [
+  "/account/returns",
+  "/account/orders",
+  "/account/delivery",
+  "/account/wallet",
+  "/account/settings",
+  "/account/notifications",
+] as const;
+
+type CustomerNotificationPath =
+  (typeof CUSTOMER_NOTIFICATION_LINKS)[number];
+
+function getNotificationDestination(
+  notification: CustomerNotification,
+): CustomerNotificationPath {
+  const savedLink = notification.link;
+
+  if (
+    savedLink &&
+    (CUSTOMER_NOTIFICATION_LINKS as readonly string[]).includes(savedLink)
+  ) {
+    return savedLink as CustomerNotificationPath;
+  }
+
+  return getDestination(notification.notification_type);
+}
+
 function getIcon(type: NotificationType) {
   switch (type) {
     case "support":
@@ -350,9 +377,7 @@ function AccountNotificationsPage() {
           <div className="space-y-3">
             {filteredNotifications.map((notification) => {
               const Icon = getIcon(notification.notification_type);
-              const destination = getDestination(
-                notification.notification_type,
-              );
+              const destination = getNotificationDestination(notification);
 
               return (
                 <article
