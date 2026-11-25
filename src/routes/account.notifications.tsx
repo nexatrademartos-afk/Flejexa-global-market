@@ -232,55 +232,6 @@ if (sessionData.session?.user.id !== currentUserId) {
     }
   };
 }, [loadNotifications]);
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    async function initialise() {
-      const { data, error: authError } = await supabase.auth.getUser();
-
-      if (!active) return;
-
-      if (authError || !data.user) {
-        setError("Please sign in again to view your notifications.");
-        setLoading(false);
-        return;
-      }
-
-      const currentUserId = data.user.id;
-      setUserId(currentUserId);
-
-      await loadNotifications(currentUserId);
-
-      if (!active) return;
-
-      channel = supabase
-        .channel(`customer-inbox-${currentUserId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "customer_notifications",
-            filter: `user_id=eq.${currentUserId}`,
-          },
-          () => {
-            void loadNotifications(currentUserId);
-          },
-        )
-        .subscribe();
-
-      setLoading(false);
-    }
-
-    void initialise();
-
-    return () => {
-      active = false;
-
-      if (channel) {
-        void supabase.removeChannel(channel);
-      }
-    };
-  }, [loadNotifications]);
 
   async function markAsRead(notification: CustomerNotification) {
     if (!userId || notification.read_at || busyId) return;
