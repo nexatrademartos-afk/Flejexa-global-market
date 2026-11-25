@@ -157,7 +157,76 @@ function AccountNotificationsPage() {
   }, []);
 
   useEffect(() => {
-    let active = true;
+  let active = true;
+  let currentUserId: string | null | undefined = undefined;
+  let channel: ReturnType<typeof supabase.channel> | null = null;
+
+  async function switchUser(nextUserId: string | null) {
+    if (!active || currentUserId !== nextUserId) return;
+
+    if (channel) {
+      const previousChannel = channel;
+      channel = null;
+      await supabase.removeChannel(previousChannel);
+    }
+
+    if (!active || currentUserId !== nextUserId) return;
+
+    setUserId(nextUserId);
+    setNotifications([]);
+    setLoading(true);
+    setError("");
+
+    if (!nextUserId) {
+      setError("Please sign in again to view your notifications.");
+      setLoading(false);
+      return;
+    }
+
+    await loadNotifications(nextUserId);
+
+    if (!active || currentUserId !== nextUserId) return;
+
+    channel = supabase
+      .channel(`customer-inbox-${nextUserId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "customer_notifications",
+          filter: `user_id=eq.${nextUserId}`,
+        },
+        () => {
+          void loadNotifications(nextUserId);
+        },
+      )
+      .subscribe();
+
+    setLoading(false);
+  }
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    const nextUserId = session?.user?.id ?? null;
+
+    if (currentUserId === nextUserId) return;
+
+    currentUserId = nextUserId;
+
+    void Promise.resolve().then(() => switchUser(nextUserId));
+  });
+
+  return () => {
+    active = false;
+    subscription.unsubscribe();
+
+    if (channel) {
+      void supabase.removeChannel(channel);
+    }
+  };
+}, [loadNotifications]);
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     async function initialise() {
