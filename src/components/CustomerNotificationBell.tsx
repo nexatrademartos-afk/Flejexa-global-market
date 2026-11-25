@@ -19,61 +19,76 @@ export function CustomerNotificationBell() {
     pathname === "/shop";
 
   useEffect(() => {
-    if (!isCustomerDashboard) {
-      setUserId(null);
-      setUnreadCount(0);
+  let active = true;
+  let currentUserId: string | null | undefined = undefined;
+  let channel: ReturnType<typeof supabase.channel> | null = null;
+
+  async function switchUser(nextUserId: string | null) {
+    if (!active || currentUserId !== nextUserId) return;
+
+    if (channel) {
+      const previousChannel = channel;
+      channel = null;
+      await supabase.removeChannel(previousChannel);
+    }
+
+    if (!active || currentUserId !== nextUserId) return;
+
+    setUserId(nextUserId);
+    setNotifications([]);
+    setLoading(true);
+    setError("");
+
+    if (!nextUserId) {
+      setError("Please sign in again to view your notifications.");
+      setLoading(false);
       return;
     }
 
-    let active = true;
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    await loadNotifications(nextUserId);
 
-    async function loadNotifications() {
-      const { data, error } = await supabase.auth.getUser();
+    if (!active || currentUserId !== nextUserId) return;
 
-      if (!active || error || !data.user) return;
+    channel = supabase
+      .channel(`customer-inbox-${nextUserId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "customer_notifications",
+          filter: `user_id=eq.${nextUserId}`,
+        },
+        () => {
+          void loadNotifications(nextUserId);
+        },
+      )
+      .subscribe();
 
-      const currentUserId = data.user.id;
-      setUserId(currentUserId);
+    setLoading(false);
+  }
 
-      async function refreshUnreadCount() {
-        const { count, error: countError } = await supabase
-          .from("customer_notifications" as any)
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", currentUserId)
-          .is("read_at", null);
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    const nextUserId = session?.user?.id ?? null;
 
-        if (!active || countError) return;
-        setUnreadCount(count ?? 0);
-      }
+    if (currentUserId === nextUserId) return;
 
-      await refreshUnreadCount();
+    currentUserId = nextUserId;
 
-      if (!active) return;
+    void Promise.resolve().then(() => switchUser(nextUserId));
+  });
 
-      channel = supabase
-        .channel(`customer-notifications-${currentUserId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "customer_notifications",
-            filter: `user_id=eq.${currentUserId}`,
-          },
-          () => void refreshUnreadCount(),
-        )
-        .subscribe();
+  return () => {
+    active = false;
+    subscription.unsubscribe();
+
+    if (channel) {
+      void supabase.removeChannel(channel);
     }
-
-    void loadNotifications();
-
-    return () => {
-      active = false;
-      if (channel) void supabase.removeChannel(channel);
-    };
-  }, [isCustomerDashboard]);
-
+  };
+}, [loadNotifications]);
   if (!isCustomerDashboard || !userId) return null;
 
   return (
