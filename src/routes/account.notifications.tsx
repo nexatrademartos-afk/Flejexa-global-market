@@ -147,7 +147,12 @@ function AccountNotificationsPage() {
       .eq("user_id", currentUserId)
       .order("created_at", { ascending: false })
       .limit(100);
+const { data: sessionData } = await supabase.auth.getSession();
 
+if (sessionData.session?.user.id !== currentUserId) {
+  return;
+}
+    
     if (queryError) {
       setError("We couldn't load your notifications. Please try again.");
       return;
