@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -147,6 +146,7 @@ function AccountNotificationsPage() {
       .eq("user_id", currentUserId)
       .order("created_at", { ascending: false })
       .limit(100);
+    
 const { data: sessionData } = await supabase.auth.getSession();
 
 if (sessionData.session?.user.id !== currentUserId) {
