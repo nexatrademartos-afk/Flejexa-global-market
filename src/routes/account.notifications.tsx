@@ -36,7 +36,13 @@ type CustomerNotification = {
   created_at: string;
 };
 
-type FilterType = "all" | "unread" | "support";
+type FilterType =
+  | "all"
+  | "unread"
+  | "support"
+  | "orders"
+  | "delivery"
+  | "wallet";
 
 export const Route = createFileRoute("/account/notifications")({
   head: accountHead(
@@ -234,10 +240,13 @@ function AccountNotificationsPage() {
   }
 
   const filteredNotifications = notifications.filter((item) => {
-    if (filter === "unread") return !item.read_at;
-    if (filter === "support") return item.notification_type === "support";
-    return true;
-  });
+  if (filter === "unread") return !item.read_at;
+  if (filter === "support") return item.notification_type === "support";
+  if (filter === "orders") return item.notification_type === "order";
+  if (filter === "delivery") return item.notification_type === "delivery";
+  if (filter === "wallet") return item.notification_type === "wallet";
+  return true;
+});
 
   return (
     <AccountPage
@@ -270,13 +279,16 @@ function AccountNotificationsPage() {
           </button>
         </section>
 
-        <div className="flex flex-wrap gap-2" aria-label="Filter notifications">
-          {(
-            [
-              ["all", "All"],
-              ["unread", "Unread"],
-              ["support", "Support"],
-            ] as const
+   <div className="flex flex-wrap gap-2" aria-label="Filter notifications">
+     {(
+     [
+     ["all", "All"],
+  ["unread", "Unread"],
+  ["orders", "Orders"],
+  ["delivery", "Delivery"],
+  ["wallet", "Wallet"],
+  ["support", "Support"],
+] as const
           ).map(([value, label]) => (
             <button
               key={value}
