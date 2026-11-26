@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchVerifiedNexaIdForUser } from "@/lib/customer-identity";
 import { ROLE_LABELS } from "@/lib/ceo-dashboard";
 import { Notice, Panel } from "./ceo-ui";
+import { cleanupCurrentDevicePushSubscription } from "@/lib/push-subscription";
 
 interface SettingsState {
   email: string | null;
@@ -50,9 +51,20 @@ export function CeoSettings() {
   }, []);
 
   async function signOut() {
-    setSigningOut(true);
-    await supabase.auth.signOut();
+  setSigningOut(true);
+
+  try {
+    await cleanupCurrentDevicePushSubscription();
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) throw error;
+
     await navigate({ to: "/sign-in" });
+  } catch (error) {
+    console.error("Sign-out failed:", error);
+    setSigningOut(false);
+  }
   }
 
   return (
