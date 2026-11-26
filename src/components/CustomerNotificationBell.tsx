@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { playFlejexaNotificationSound } from "@/lib/notification-sound";
 
 export function CustomerNotificationBell() {
   const pathname = useRouterState({
@@ -71,7 +72,14 @@ export function CustomerNotificationBell() {
             table: "customer_notifications",
             filter: `user_id=eq.${nextUserId}`,
           },
-          async () => {
+                    async (payload) => {
+            if (
+              payload.eventType === "INSERT" &&
+              document.visibilityState === "visible"
+            ) {
+              playFlejexaNotificationSound();
+            }
+
             const { count: latestCount, error: latestError } =
               await supabase
                 .from("customer_notifications" as any)
