@@ -25,6 +25,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { useLocalList } from "@/lib/local-list";
+import { cleanupCurrentDevicePushSubscription } from "@/lib/push-subscription";
 
 function useCustomerSession() {
   const [signedIn, setSignedIn] = useState(false);
@@ -72,7 +73,9 @@ function useCustomerSignOut() {
     setSigningOut(true);
 
     try {
-      const { error } = await supabase.auth.signOut();
+      await cleanupCurrentDevicePushSubscription();
+
+const { error } = await supabase.auth.signOut();
 
       if (error) {
         setSigningOut(false);
