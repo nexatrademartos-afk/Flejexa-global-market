@@ -84,6 +84,11 @@ self.addEventListener("push", (event) => {
         }
       }
 
+      // Ignore null, arrays and other unexpected payload shapes.
+      if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+        payload = {};
+      }
+
       const title =
         typeof payload.title === "string" && payload.title.trim()
           ? payload.title.slice(0, 120)
@@ -98,14 +103,16 @@ self.addEventListener("push", (event) => {
         payload.link || payload.url
       );
 
+      const tag =
+        typeof payload.tag === "string" && payload.tag.trim()
+          ? payload.tag.slice(0, 100)
+          : `flejexa-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
       await self.registration.showNotification(title, {
         body,
         icon: "/nexa-global-mart-logo.png",
         badge: "/nexa-global-mart-logo.png",
-        tag:
-          typeof payload.tag === "string"
-            ? payload.tag.slice(0, 100)
-            : "flejexa-update",
+        tag,
         renotify: false,
         data: { path },
       });
