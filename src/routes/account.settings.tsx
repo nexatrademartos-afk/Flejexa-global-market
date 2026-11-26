@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, Check, Download, KeyRound, Loader2, Lock } from "lucide-react";
 import { PlannedBadge } from "@/components/states";
 import { PushNotificationSettings } from "@/components/PushNotificationSettings";
+import { FlejexaNotificationSoundSettings } from "@/components/FlejexaNotificationSoundSettings";
 
 export const Route = createFileRoute("/account/settings")({
   head: accountHead("Settings", "Manage account security and privacy."),
@@ -403,7 +404,8 @@ function AccountSettingsPage() {
           )}
         </section>
         
-         <PushNotificationSettings />
+                 <FlejexaNotificationSoundSettings />
+        <PushNotificationSettings />
       {/* Customer Notification Preferences */}
         <section className="surface rounded-2xl border p-5 sm:p-6">
           <div className="flex items-start gap-3">
