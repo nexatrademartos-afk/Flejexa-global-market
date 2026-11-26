@@ -14,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { cleanupCurrentDevicePushSubscription } from "@/lib/push-subscription";
 
 export const ACCOUNT_NAV = [
   { to: "/account", label: "Overview" },
@@ -87,7 +88,9 @@ function AccountLayout() {
     setSignOutError("");
 
     try {
-      const { error } = await supabase.auth.signOut();
+      await cleanupCurrentDevicePushSubscription();
+
+const { error } = await supabase.auth.signOut();
 
       if (error) {
         setSignOutError(
