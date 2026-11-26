@@ -43,9 +43,11 @@ const NOTIFICATION_PATHS = new Set([
   "/account/orders",
   "/account/delivery",
   "/account/wallet",
+  "/account/returns",
+  "/account/rewards",
+  "/account/settings",
   "/support",
 ]);
-
 function getSafeNotificationPath(value) {
   if (typeof value !== "string") return "/account/notifications";
 
