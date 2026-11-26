@@ -37,6 +37,112 @@ const PRIVATE_PATH_PREFIXES = [
 
 const PRIVATE_HOST_FRAGMENTS = ["supabase.co", "connector-gateway.lovable.dev"];
 
+// Only allow notification clicks to open approved FleJexa destinations.
+const NOTIFICATION_PATHS = new Set([
+  "/account/notifications",
+  "/account/orders",
+  "/account/delivery",
+  "/account/wallet",
+  "/support",
+]);
+
+function getSafeNotificationPath(value) {
+  if (typeof value !== "string") return "/account/notifications";
+
+  try {
+    const url = new URL(value, self.location.origin);
+
+    if (url.origin !== self.location.origin) {
+      return "/account/notifications";
+    }
+
+    if (!NOTIFICATION_PATHS.has(url.pathname)) {
+      return "/account/notifications";
+    }
+
+    return url.pathname;
+  } catch {
+    return "/account/notifications";
+  }
+}
+
+// Receive background push messages.
+self.addEventListener("push", (event) => {
+  event.waitUntil(
+    (async () => {
+      let payload = {};
+
+      try {
+        if (event.data) {
+          payload = event.data.json();
+        }
+      } catch {
+        try {
+          payload = { body: event.data?.text() || "" };
+        } catch {
+          payload = {};
+        }
+      }
+
+      const title =
+        typeof payload.title === "string" && payload.title.trim()
+          ? payload.title.slice(0, 120)
+          : "FleJexa Global Market";
+
+      const body =
+        typeof payload.body === "string"
+          ? payload.body.slice(0, 240)
+          : "You have a new account update.";
+
+      const path = getSafeNotificationPath(
+        payload.link || payload.url
+      );
+
+      await self.registration.showNotification(title, {
+        body,
+        icon: "/nexa-global-mart-logo.png",
+        badge: "/nexa-global-mart-logo.png",
+        tag:
+          typeof payload.tag === "string"
+            ? payload.tag.slice(0, 100)
+            : "flejexa-update",
+        renotify: false,
+        data: { path },
+      });
+    })()
+  );
+});
+
+// Open the correct FleJexa page when a notification is tapped.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    (async () => {
+      const path = getSafeNotificationPath(
+        event.notification.data?.path
+      );
+
+      const targetUrl = new URL(path, self.location.origin);
+
+      const windows = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+
+      for (const client of windows) {
+        if (client.url.startsWith(self.location.origin)) {
+          await client.navigate(targetUrl.href);
+          await client.focus();
+          return;
+        }
+      }
+
+      await self.clients.openWindow(targetUrl.href);
+    })()
+  );
+});
+
 self.addEventListener("install", (event) => {
   event.waitUntil(precacheShell());
   self.skipWaiting();
