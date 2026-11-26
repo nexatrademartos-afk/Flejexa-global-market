@@ -4,6 +4,7 @@ import { AccountPage, accountHead } from "@/components/AccountPage";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, Check, Download, KeyRound, Loader2, Lock } from "lucide-react";
 import { PlannedBadge } from "@/components/states";
+import { PushNotificationSettings } from "@/components/PushNotificationSettings";
 
 export const Route = createFileRoute("/account/settings")({
   head: accountHead("Settings", "Manage account security and privacy."),
@@ -401,8 +402,9 @@ function AccountSettingsPage() {
             <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">{exportFeedback}</p>
           )}
         </section>
-
-                {/* Customer Notification Preferences */}
+        
+         <PushNotificationSettings />
+      {/* Customer Notification Preferences */}
         <section className="surface rounded-2xl border p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gold/40 bg-gold/10 text-gold">
