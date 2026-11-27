@@ -363,25 +363,6 @@ if (sessionData.session?.user.id !== currentUserId) {
   )}
 </section>
 
-            <div>
-              <p className="font-bold">Your inbox</p>
-              <p className="text-xs text-muted-foreground">
-                {unreadCount} unread {unreadCount === 1 ? "message" : "messages"}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => void markAllAsRead()}
-            disabled={unreadCount === 0 || markingAll}
-            className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border border-gold/40 px-3 text-xs font-semibold text-gold transition hover:bg-gold/10 disabled:opacity-40"
-          >
-            <CheckCheck className="h-4 w-4" />
-            {markingAll ? "Updating..." : "Read all"}
-          </button>
-        </section>
-
    <div className="flex flex-wrap gap-2" aria-label="Filter notifications">
      {(
      [
