@@ -4,8 +4,6 @@ import { AccountPage, accountHead } from "@/components/AccountPage";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, Check, Download, KeyRound, Loader2, Lock } from "lucide-react";
 import { PlannedBadge } from "@/components/states";
-import { PushNotificationSettings } from "@/components/PushNotificationSettings";
-import { FlejexaNotificationSoundSettings } from "@/components/FlejexaNotificationSoundSettings";
 
 export const Route = createFileRoute("/account/settings")({
   head: accountHead("Settings", "Manage account security and privacy."),
@@ -96,126 +94,7 @@ function AccountSettingsPage() {
       setPasswordLoading(false);
     }
   }
-  
-  // Customer notification preferences
-  const [notificationPreferences, setNotificationPreferences] =
-    useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
-  const [preferencesLoading, setPreferencesLoading] = useState(true);
-  const [preferencesSaving, setPreferencesSaving] = useState(false);
-  const [preferencesFeedback, setPreferencesFeedback] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
-
-    async function loadNotificationPreferences() {
-      setPreferencesLoading(true);
-
-      try {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-
-        if (userError) throw userError;
-
-        if (!user) {
-          if (active) {
-            setPreferencesFeedback("Please sign in to manage notification preferences.");
-          }
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from("customer_notification_preferences")
-          .select(
-            "push_orders, push_delivery, push_wallet, push_support, push_security, push_promotions"
-          )
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        if (active && data) {
-          setNotificationPreferences({
-            push_orders: data.push_orders,
-            push_delivery: data.push_delivery,
-            push_wallet: data.push_wallet,
-            push_support: data.push_support,
-            push_security: data.push_security,
-            push_promotions: data.push_promotions,
-          });
-        }
-      } catch (error) {
-        console.error("Notification preferences could not be loaded:", error);
-
-        if (active) {
-          setPreferencesFeedback(
-            "Could not load your notification preferences. Please refresh and try again."
-          );
-        }
-      } finally {
-        if (active) setPreferencesLoading(false);
-      }
-    }
-
-    void loadNotificationPreferences();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  async function handleNotificationPreferenceChange(
-    key: NotificationPreferenceKey,
-    checked: boolean
-  ) {
-    if (preferencesSaving) return;
-
-    setPreferencesSaving(true);
-    setPreferencesFeedback(null);
-
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) throw userError;
-      if (!user) throw new Error("Please sign in to save your preferences.");
-
-      const nextPreferences = {
-        ...notificationPreferences,
-        [key]: checked,
-      };
-
-      const { error } = await supabase
-        .from("customer_notification_preferences")
-        .upsert(
-          {
-            user_id: user.id,
-            ...nextPreferences,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id" }
-        );
-
-      if (error) throw error;
-
-      setNotificationPreferences(nextPreferences);
-      setPreferencesFeedback("Your notification preferences have been saved.");
-    } catch (error) {
-      console.error("Notification preferences could not be saved:", error);
-
-      setPreferencesFeedback(
-        error instanceof Error
-          ? error.message
-          : "Could not save your preferences. Please try again."
-      );
-    } finally {
-      setPreferencesSaving(false);
-    }
-  }
-  
   async function handleExportData() {
     if (exporting) return;
     setExporting(true);
