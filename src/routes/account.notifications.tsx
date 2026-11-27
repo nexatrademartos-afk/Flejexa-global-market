@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { AccountPage, accountHead } from "@/components/AccountPage";
 import { supabase } from "@/integrations/supabase/client";
+import { Settings, X } from "lucide-react";
+import { CustomerNotificationSettings } from "@/components/CustomerNotificationSettings";
 
 type NotificationType =
   | "system"
@@ -130,6 +132,8 @@ function AccountNotificationsPage() {
   const [markingAll, setMarkingAll] = useState(false);
   const [error, setError] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [showNotificationSettings, setShowNotificationSettings] =
+  useState(false);
 
   const unreadCount = notifications.filter(
     (item) => !item.read_at,
@@ -306,11 +310,58 @@ if (sessionData.session?.user.id !== currentUserId) {
       intro="Your personal messages and important account updates."
     >
       <div className="space-y-4">
-        <section className="surface flex items-center justify-between gap-3 rounded-2xl border border-gold/40 p-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-gold/40 bg-gold/10 text-gold">
-              <Bell className="h-5 w-5" />
-            </span>
+        <section className="surface rounded-2xl border border-gold/40 p-4">
+  <div className="flex items-center justify-between gap-3">
+    <div className="flex min-w-0 items-center gap-3">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-gold/40 bg-gold/10 text-gold">
+        <Bell className="h-5 w-5" />
+      </span>
+
+      <div>
+        <p className="font-bold">Your inbox</p>
+        <p className="text-xs text-muted-foreground">
+          {unreadCount} unread {unreadCount === 1 ? "message" : "messages"}
+        </p>
+      </div>
+    </div>
+
+    <div className="flex shrink-0 items-center gap-2">
+      <button
+        type="button"
+        onClick={() => setShowNotificationSettings((current) => !current)}
+        aria-label={
+          showNotificationSettings
+            ? "Close notification settings"
+            : "Open notification settings"
+        }
+        aria-expanded={showNotificationSettings}
+        className="grid h-10 w-10 place-items-center rounded-lg border border-gold/40 text-gold transition hover:bg-gold/10"
+      >
+        {showNotificationSettings ? (
+          <X className="h-5 w-5" />
+        ) : (
+          <Settings className="h-5 w-5" />
+        )}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => void markAllAsRead()}
+        disabled={unreadCount === 0 || markingAll}
+        className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-gold/40 px-3 text-xs font-semibold text-gold transition hover:bg-gold/10 disabled:opacity-40"
+      >
+        <CheckCheck className="h-4 w-4" />
+        {markingAll ? "Updating..." : "Read all"}
+      </button>
+    </div>
+  </div>
+
+  {showNotificationSettings && (
+    <div className="mt-4 border-t border-border pt-4">
+      <CustomerNotificationSettings />
+    </div>
+  )}
+</section>
 
             <div>
               <p className="font-bold">Your inbox</p>
