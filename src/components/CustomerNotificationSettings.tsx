@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Check, Settings2 } from "lucide-react";
+import { Settings2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PushNotificationSettings } from "@/components/PushNotificationSettings";
 import { FlejexaNotificationSoundSettings } from "@/components/FlejexaNotificationSoundSettings";
