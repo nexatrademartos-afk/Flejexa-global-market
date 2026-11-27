@@ -21,6 +21,13 @@ import {
   Gift,
   Wallet,
   Briefcase,
+  LayoutDashboard,
+  Package,
+  Truck,
+  MapPin,
+  Bell,
+  Settings,
+  CircleHelp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -364,14 +371,6 @@ export function SiteHeader() {
               )}
             </Link>
             <Link
-              to="/account"
-              onClick={closeMenu}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
-            >
-              <User className="h-4 w-4 text-gold" />
-              Customer dashboard
-            </Link>
-            <Link
               to="/about"
               onClick={closeMenu}
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
@@ -389,16 +388,105 @@ export function SiteHeader() {
 
             <div className="my-2 border-t border-gold/20" />
 
-            {sessionReady && signedIn ? (
-              <div className="space-y-2 pt-1">
+                    {sessionReady && signedIn ? (
+              <section
+                aria-label="My Account"
+                className="space-y-1 pt-2"
+              >
+                <p className="px-3 pb-2 text-xs font-bold uppercase tracking-widest text-gold">
+                  MY ACCOUNT
+                </p>
+
                 <Link
                   to="/account"
                   onClick={closeMenu}
-                  className="btn btn-outline flex w-full items-center justify-center gap-2 py-3 font-semibold"
+                  className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
                 >
-                  <User className="h-4 w-4" />
-                  My dashboard
+                  <LayoutDashboard className="h-4 w-4 text-gold" />
+                  My Dashboard
                 </Link>
+
+                <Link
+                  to="/account/profile"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
+                >
+                  <User className="h-4 w-4 text-gold" />
+                  My Profile
+                </Link>
+
+                <Link
+                  to="/account/orders"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
+                >
+                  <Package className="h-4 w-4 text-gold" />
+                  My Orders
+                </Link>
+
+                <Link
+                  to="/account/delivery"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
+                >
+                  <Truck className="h-4 w-4 text-gold" />
+                  Delivery Centre
+                </Link>
+
+                <Link
+                  to="/account/addresses"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
+                >
+                  <MapPin className="h-4 w-4 text-gold" />
+                  Delivery Addresses
+                </Link>
+
+                <Link
+                  to="/account/notifications"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
+                >
+                  <Bell className="h-4 w-4 text-gold" />
+                  Notifications & Offers
+                </Link>
+
+                <Link
+                  to="/account/settings"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
+                >
+                  <Settings className="h-4 w-4 text-gold" />
+                  Security & Privacy
+                </Link>
+
+                <Link
+                  to="/account/wallet"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
+                >
+                  <Wallet className="h-4 w-4 text-gold" />
+                  My Wallet
+                </Link>
+
+                <Link
+                  to="/account/rewards"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
+                >
+                  <Gift className="h-4 w-4 text-gold" />
+                  Q Points & Rewards
+                </Link>
+
+                <Link
+                  to="/account/returns"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-secondary"
+                >
+                  <CircleHelp className="h-4 w-4 text-gold" />
+                  Help & Support
+                </Link>
+
                 <button
                   type="button"
                   onClick={() => {
@@ -406,11 +494,11 @@ export function SiteHeader() {
                     void signOut();
                   }}
                   disabled={signingOut}
-                  className="btn btn-gold flex w-full items-center justify-center gap-2 py-3 font-bold disabled:opacity-60"
+                  className="btn btn-gold mt-3 flex w-full items-center justify-center gap-2 py-3 font-bold disabled:opacity-60"
                 >
-                  {signingOut ? "Signing out..." : "Sign out"}
+                  {signingOut ? "Signing out..." : "Sign Out"}
                 </button>
-              </div>
+              </section>
             ) : (
               <div className="space-y-2 pt-1">
                 <Link
